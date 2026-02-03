@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NI EU Law Tracker - Windsor Framework Monitor</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .priority-high { border-left: 4px solid #ef4444; }
+    .priority-medium { border-left: 4px solid #f59e0b; }
+    .priority-low { border-left: 4px solid #10b981; }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-high { background: #fee2e2; color: #991b1b; }
+    .badge-medium { background: #fef3c7; color: #92400e; }
+    .badge-low { background: #d1fae5; color: #065f46; }
+    
+    .spinner {
+      border: 3px solid #f3f4f6;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Mock API for demonstration (replace with real backend)
+    const API_BASE = 'http://localhost:3001/api';
+
+    function App() {
+      const [legislation, setLegislation] = useState([]);
+      const [stats, setStats] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [filter, setFilter] = useState('all');
+      const [searchTerm, setSearchTerm] = useState('');
+      const [selectedItem, setSelectedItem] = useState(null);
+      const [view, setView] = useState('dashboard');
+
+      // Sample data for demo
+      const sampleData = [
+        {
+          id: 1,
+          title: "Digital Fairness Act",
+          topic: "Consumer Protection",
+          type_of_act: "Proposal for a regulation",
+          summary: "Aims to tackle problematic practices such as unfair commercial practices related to dark patterns, misleading marketing by influencers, addictive design of digital products, and unfair personalisation practices.",
+          relevance_score: 85,
+          annex2_categories: "Consumer Protection, Product Safety and Standards",
+          recommended_department: "Department for the Economy",
+          feedback_period: "17 July 2025 - 24 October 2025",
+          consultation_link: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/digital-fairness_en",
+          next_steps: "High priority - Review consultation deadline and prepare response. Consider impacts on NI digital economy and consumer rights.",
+          status: "active",
+          urgency: "high"
+        },
+        {
+          id: 2,
+          title: "Circular Economy Act",
+          topic: "Environment",
+          type_of_act: "Proposal for a regulation",
+          summary: "Will enhance the EU's economic security, competitiveness, while promoting more sustainable production and circular economy business models and decarbonisation.",
+          relevance_score: 78,
+          annex2_categories: "Environment, Product Safety and Standards",
+          recommended_department: "DAERA (Department of Agriculture, Environment and Rural Affairs)",
+          feedback_period: "01 August 2025 - 06 November 2025",
+          consultation_link: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/circular-economy_en",
+          next_steps: "Review environmental impact on NI businesses and waste management systems. Coordinate with DAERA.",
+          status: "active",
+          urgency: "medium"
+        },
+        {
+          id: 3,
+          title: "Consumer Agenda 2025-2030",
+          topic: "Consumers",
+          type_of_act: "Communication",
+          summary: "Intended to ensure consumers can fully benefit from the Single Market, strengthen enforcement, protect vulnerable consumers, and promote fair green and digital economy.",
+          relevance_score: 92,
+          annex2_categories: "Consumer Protection",
+          recommended_department: "Consumer Council for Northern Ireland",
+          feedback_period: "19 May 2025 - 31 August 2025",
+          consultation_link: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/consumer-agenda_en",
+          next_steps: "Critical - Urgent response required. This directly impacts CCNI's core mandate and NI consumer protection framework.",
+          status: "active",
+          urgency: "high"
+        },
+        {
+          id: 4,
+          title: "European Grid Package",
+          topic: "Energy",
+          type_of_act: "Proposal for a regulation",
+          summary: "Aims to enhance EU competitiveness by helping access affordable, secure and clean energy. Includes accelerating grid infrastructure upgrade, digitalisation and expansion.",
+          relevance_score: 71,
+          annex2_categories: "Single Electricity Market, Energy",
+          recommended_department: "Department for the Economy",
+          feedback_period: "3 May 2025 - 05 August 2025",
+          consultation_link: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/grid-package_en",
+          next_steps: "Review implications for NI's Single Electricity Market participation and energy infrastructure plans.",
+          status: "active",
+          urgency: "medium"
+        },
+        {
+          id: 5,
+          title: "Aviation – Fitness Check of EU Airport Legislation",
+          topic: "Transport",
+          type_of_act: "Evaluation, REFIT",
+          summary: "Fitness check of EU airport legislation to determine if it is still fit for purpose, considering market consolidation, capacity challenges, labour shortages, and decarbonisation needs.",
+          relevance_score: 65,
+          annex2_categories: "Transport",
+          recommended_department: "Department for Infrastructure",
+          feedback_period: "25 April 2024 - 06 June 2024",
+          consultation_link: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/aviation-fitness_en",
+          next_steps: "Monitor for relevance to Belfast airports and regional connectivity. Low urgency - consultation closed.",
+          status: "monitoring",
+          urgency: "low"
+        },
+        {
+          id: 6,
+          title: "Carbon Border Adjustment Mechanism (CBAM)",
+          topic: "Energy",
+          type_of_act: "Proposal for a regulation",
+          summary: "Extends CBAM to downstream products to lower carbon leakage risk. Includes anti-circumvention measures and rules on electricity emissions.",
+          relevance_score: 58,
+          annex2_categories: "Environment, Energy",
+          recommended_department: "DAERA",
+          feedback_period: "01 July 2025 - 26 August 2025",
+          consultation_link: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/cbam_en",
+          next_steps: "Assess impact on NI businesses trading with EU. Coordinate with Department for the Economy on trade implications.",
+          status: "active",
+          urgency: "medium"
+        }
+      ];
+
+      useEffect(() => {
+        // Simulate API call
+        setTimeout(() => {
+          setLegislation(sampleData);
+          setStats({
+            total: sampleData.length,
+            high_priority: sampleData.filter(l => l.urgency === 'high').length,
+            active: sampleData.filter(l => l.status === 'active').length,
+            by_category: [
+              { annex2_categories: 'Consumer Protection', count: 2 },
+              { annex2_categories: 'Environment', count: 2 },
+              { annex2_categories: 'Energy', count: 2 },
+              { annex2_categories: 'Transport', count: 1 }
+            ]
+          });
+          setLoading(false);
+        }, 1000);
+      }, []);
+
+      const filteredLegislation = legislation.filter(item => {
+        const matchesFilter = filter === 'all' || 
+          (filter === 'high' && item.urgency === 'high') ||
+          (filter === 'medium' && item.urgency === 'medium') ||
+          (filter === 'low' && item.urgency === 'low') ||
+          (filter === 'active' && item.status === 'active');
+        
+        const matchesSearch = searchTerm === '' || 
+          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.topic.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        return matchesFilter && matchesSearch;
+      });
+
+      if (loading) {
+        return (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <div className="spinner mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading EU legislation tracker...</p>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen">
+          {/* Header */}
+          <header className="gradient-bg text-white shadow-lg">
+            <div className="max-w-7xl mx-auto px-4 py-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold">NI EU Law Tracker</h1>
+                  <p className="text-purple-100 mt-1">Windsor Framework Compliance Monitor</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setView('dashboard')}
+                    className={`px-4 py-2 rounded-lg transition ${view === 'dashboard' ? 'bg-white text-purple-600' : 'bg-purple-600 hover:bg-purple-700'}`}
+                  >
+                    <i className="fas fa-home mr-2"></i>
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={() => setView('about')}
+                    className={`px-4 py-2 rounded-lg transition ${view === 'about' ? 'bg-white text-purple-600' : 'bg-purple-600 hover:bg-purple-700'}`}
+                  >
+                    <i className="fas fa-info-circle mr-2"></i>
+                    About
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {view === 'about' ? (
+            <div className="max-w-4xl mx-auto px-4 py-8">
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <h2 className="text-2xl font-bold mb-4">About the NI EU Law Tracker</h2>
+                <div className="prose max-w-none">
+                  <p className="mb-4">
+                    This AI-powered dashboard helps Northern Ireland policymakers monitor EU legislation 
+                    relevant to NI under the Windsor Framework. The system automatically:
+                  </p>
+                  <ul className="list-disc pl-6 mb-4 space-y-2">
+                    <li>Scans EUR-Lex and European Commission websites for new legislation</li>
+                    <li>Analyzes legislation against Annex 2 of the Windsor Framework</li>
+                    <li>Assigns relevance scores using AI and keyword analysis</li>
+                    <li>Recommends appropriate NI departments for action</li>
+                    <li>Tracks consultation deadlines and next steps</li>
+                    <li>Cross-references with NI Assembly Democratic Scrutiny Committee monitoring</li>
+                  </ul>
+                  
+                  <h3 className="text-xl font-bold mt-6 mb-3">How It Works</h3>
+                  <ol className="list-decimal pl-6 mb-4 space-y-2">
+                    <li>AI analyzes each piece of EU legislation</li>
+                    <li>Matches against 14 Annex 2 categories from the Windsor Framework</li>
+                    <li>Calculates relevance score (0-100)</li>
+                    <li>Identifies impacted NI departments</li>
+                    <li>Flags urgent consultations requiring response</li>
+                  </ol>
+                  
+                  <h3 className="text-xl font-bold mt-6 mb-3">Annex 2 Categories Monitored</h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="bg-gray-50 p-2 rounded">• Agricultural Products & Foodstuffs</div>
+                    <div className="bg-gray-50 p-2 rounded">• Consumer Protection</div>
+                    <div className="bg-gray-50 p-2 rounded">• Environment</div>
+                    <div className="bg-gray-50 p-2 rounded">• Energy & Electricity Markets</div>
+                    <div className="bg-gray-50 p-2 rounded">• Product Safety & Standards</div>
+                    <div className="bg-gray-50 p-2 rounded">• Transport</div>
+                    <div className="bg-gray-50 p-2 rounded">• VAT & Excise Duties</div>
+                    <div className="bg-gray-50 p-2 rounded">• Equality & Human Rights</div>
+                    <div className="bg-gray-50 p-2 rounded">• State Aid</div>
+                    <div className="bg-gray-50 p-2 rounded">• SPS Measures</div>
+                  </div>
+                  
+                  <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mt-6">
+                    <p className="text-sm">
+                      <strong>Note:</strong> This is a prototype system built for the Consumer Council for Northern Ireland. 
+                      The AI analysis provides recommendations but should be reviewed by policy experts before action.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Stats Cards */}
+              <div className="max-w-7xl mx-auto px-4 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                  <div className="bg-white rounded-lg shadow-lg p-6 card-hover transition">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-500 text-sm">Total Legislation</p>
+                        <p className="text-3xl font-bold text-gray-800">{stats?.total || 0}</p>
+                      </div>
+                      <div className="bg-blue-100 p-3 rounded-full">
+                        <i className="fas fa-file-alt text-blue-600 text-2xl"></i>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-lg p-6 card-hover transition">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-500 text-sm">High Priority</p>
+                        <p className="text-3xl font-bold text-red-600">{stats?.high_priority || 0}</p>
+                      </div>
+                      <div className="bg-red-100 p-3 rounded-full">
+                        <i className="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-lg p-6 card-hover transition">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-500 text-sm">Active Tracking</p>
+                        <p className="text-3xl font-bold text-green-600">{stats?.active || 0}</p>
+                      </div>
+                      <div className="bg-green-100 p-3 rounded-full">
+                        <i className="fas fa-check-circle text-green-600 text-2xl"></i>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-lg p-6 card-hover transition">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-500 text-sm">Categories</p>
+                        <p className="text-3xl font-bold text-purple-600">{stats?.by_category?.length || 0}</p>
+                      </div>
+                      <div className="bg-purple-100 p-3 rounded-full">
+                        <i className="fas fa-tags text-purple-600 text-2xl"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filters and Search */}
+                <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                    <div className="flex items-center space-x-4">
+                      <button
+                        onClick={() => setFilter('all')}
+                        className={`px-4 py-2 rounded-lg transition ${filter === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                      >
+                        All
+                      </button>
+                      <button
+                        onClick={() => setFilter('high')}
+                        className={`px-4 py-2 rounded-lg transition ${filter === 'high' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                      >
+                        High Priority
+                      </button>
+                      <button
+                        onClick={() => setFilter('medium')}
+                        className={`px-4 py-2 rounded-lg transition ${filter === 'medium' ? 'bg-yellow-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                      >
+                        Medium
+                      </button>
+                      <button
+                        onClick={() => setFilter('active')}
+                        className={`px-4 py-2 rounded-lg transition ${filter === 'active' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                      >
+                        Active
+                      </button>
+                    </div>
+                    
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search legislation..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent w-full md:w-80"
+                      />
+                      <i className="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Legislation List */}
+                <div className="space-y-4">
+                  {filteredLegislation.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`bg-white rounded-lg shadow-lg p-6 card-hover transition cursor-pointer priority-${item.urgency}`}
+                      onClick={() => setSelectedItem(item)}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h3 className="text-xl font-bold text-gray-800">{item.title}</h3>
+                            <span className={`badge badge-${item.urgency}`}>
+                              {item.urgency.toUpperCase()}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 text-sm mb-2">{item.topic} • {item.type_of_act}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-3xl font-bold text-purple-600">{item.relevance_score}</div>
+                          <div className="text-xs text-gray-500">Relevance Score</div>
+                        </div>
+                      </div>
+                      
+                      <p className="text-gray-700 mb-4">{item.summary.substring(0, 200)}...</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm text-gray-500">Annex 2 Categories</p>
+                          <p className="text-sm font-medium text-gray-800">{item.annex2_categories}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Recommended Department</p>
+                          <p className="text-sm font-medium text-gray-800">{item.recommended_department}</p>
+                        </div>
+                      </div>
+                      
+                      {item.feedback_period && (
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
+                          <p className="text-sm text-yellow-800">
+                            <i className="fas fa-clock mr-2"></i>
+                            <strong>Consultation Period:</strong> {item.feedback_period}
+                          </p>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <div className="text-sm text-gray-600">
+                          <i className="fas fa-lightbulb mr-2"></i>
+                          {item.next_steps}
+                        </div>
+                        <button className="text-purple-600 hover:text-purple-700 font-medium text-sm">
+                          View Details <i className="fas fa-arrow-right ml-1"></i>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredLegislation.length === 0 && (
+                  <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+                    <i className="fas fa-search text-gray-300 text-6xl mb-4"></i>
+                    <h3 className="text-xl font-bold text-gray-600 mb-2">No legislation found</h3>
+                    <p className="text-gray-500">Try adjusting your filters or search terms</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Detail Modal */}
+          {selectedItem && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setSelectedItem(null)}>
+              <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="gradient-bg text-white p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold mb-2">{selectedItem.title}</h2>
+                      <p className="text-purple-100">{selectedItem.topic} • {selectedItem.type_of_act}</p>
+                    </div>
+                    <button onClick={() => setSelectedItem(null)} className="text-white hover:text-gray-200">
+                      <i className="fas fa-times text-2xl"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <p className="text-sm text-purple-600 font-medium mb-1">Relevance Score</p>
+                      <p className="text-3xl font-bold text-purple-700">{selectedItem.relevance_score}/100</p>
+                    </div>
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-sm text-blue-600 font-medium mb-1">Priority Level</p>
+                      <p className="text-2xl font-bold text-blue-700">{selectedItem.urgency.toUpperCase()}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <h3 className="font-bold text-gray-800 mb-2">Summary</h3>
+                    <p className="text-gray-700">{selectedItem.summary}</p>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <h3 className="font-bold text-gray-800 mb-2">Annex 2 Categories</h3>
+                    <p className="text-gray-700">{selectedItem.annex2_categories}</p>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <h3 className="font-bold text-gray-800 mb-2">Recommended Department</h3>
+                    <p className="text-gray-700">{selectedItem.recommended_department}</p>
+                  </div>
+                  
+                  {selectedItem.feedback_period && (
+                    <div className="mb-6">
+                      <h3 className="font-bold text-gray-800 mb-2">Consultation Period</h3>
+                      <p className="text-gray-700">{selectedItem.feedback_period}</p>
+                    </div>
+                  )}
+                  
+                  <div className="mb-6">
+                    <h3 className="font-bold text-gray-800 mb-2">Next Steps</h3>
+                    <p className="text-gray-700">{selectedItem.next_steps}</p>
+                  </div>
+                  
+                  {selectedItem.consultation_link && (
+                    <div className="flex items-center space-x-4">
+                      <a
+                        href={selectedItem.consultation_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition text-center"
+                      >
+                        <i className="fas fa-external-link-alt mr-2"></i>
+                        View Consultation
+                      </a>
+                      <button className="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition">
+                        <i className="fas fa-bookmark mr-2"></i>
+                        Save
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="bg-gray-800 text-white py-8 mt-16">
+            <div className="max-w-7xl mx-auto px-4 text-center">
+              <p className="mb-2">
+                <strong>NI EU Law Tracker</strong> - Windsor Framework Compliance Monitor
+              </p>
+              <p className="text-gray-400 text-sm">
+                Built for the Consumer Council for Northern Ireland • Powered by AI Analysis
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                Data sources: EUR-Lex • European Commission • NI Assembly Democratic Scrutiny Committee
+              </p>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
