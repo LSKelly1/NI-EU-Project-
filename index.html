@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NI/EU Law Relevance Tracker</title>
+    <style>
+        :root {
+            --primary-blue: #003d5b;
+            --primary-teal: #00838f;
+            --accent-teal: #4db6ac;
+            --light-teal: #e0f2f1;
+            --critical-red: #c62828;
+            --high-amber: #ef6c00;
+            --medium-blue: #1565c0;
+            --low-grey: #546e7a;
+            --white: #ffffff;
+            --light-grey: #f5f7fa;
+            --text-dark: #1a1a2e;
+            --text-muted: #5a6a7a;
+            --border-colour: #d1d9e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--light-grey);
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-teal) 100%);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Navigation tabs */
+        .nav-tabs {
+            background: var(--white);
+            border-bottom: 1px solid var(--border-colour);
+            padding: 0 2rem;
+        }
+
+        .nav-tabs-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary-teal);
+            background: var(--light-teal);
+        }
+
+        .nav-tab.active {
+            color: var(--primary-teal);
+            border-bottom-color: var(--primary-teal);
+        }
+
+        /* Main content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1.25rem;
+            border-left: 4px solid var(--primary-teal);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-card.critical { border-left-color: var(--critical-red); }
+        .stat-card.high { border-left-color: var(--high-amber); }
+        .stat-card.medium { border-left-color: var(--medium-blue); }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* Filters */
+        .filters-bar {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border-colour);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            min-width: 180px;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary-teal);
+            box-shadow: 0 0 0 2px var(--light-teal);
+        }
+
+        /* Legislation list */
+        .legislation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .legislation-card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid var(--low-grey);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .legislation-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .legislation-card.critical { border-left-color: var(--critical-red); }
+        .legislation-card.high { border-left-color: var(--high-amber); }
+        .legislation-card.medium { border-left-color: var(--medium-blue); }
+        .legislation-card.low { border-left-color: var(--low-grey); }
+
+        .legislation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .legislation-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            flex: 1;
+        }
+
+        .legislation-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .legislation-title a:hover {
+            color: var(--primary-teal);
+            text-decoration: underline;
+        }
+
+        .priority-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .priority-badge.critical {
+            background: var(--critical-red);
+            color: var(--white);
+        }
+
+        .priority-badge.high {
+            background: var(--high-amber);
+            color: var(--white);
+        }
+
+        .priority-badge.medium {
+            background: var(--medium-blue);
+            color: var(--white);
+        }
+
+        .priority-badge.low {
+            background: var(--low-grey);
+            color: var(--white);
+        }
+
+        .legislation-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .meta-item strong {
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .legislation-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            background: var(--light-grey);
+            color: var(--text-muted);
+        }
+
+        .tag.category {
+            background: var(--light-teal);
+            color: var(--primary-teal);
+        }
+
+        .tag.department {
+            background: #e8eaf6;
+            color: #3949ab;
+        }
+
+        .tag.consultation {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .tag.dsc {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        /* Score breakdown tooltip */
+        .score-breakdown {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-colour);
+        }
+
+        .score-breakdown-toggle {
+            cursor: pointer;
+            color: var(--primary-teal);
+            font-size: 0.8rem;
+        }
+
+        .score-breakdown-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .score-details {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: var(--light-grey);
+            border-radius: 4px;
+        }
+
+        .score-details.visible {
+            display: block;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.2rem 0;
+        }
+
+        /* Tab content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Categories view */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .category-card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .category-number {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .category-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .category-relevance {
+            font-size: 0.8rem;
+        }
+
+        .category-relevance.high { color: var(--critical-red); }
+        .category-relevance.medium { color: var(--high-amber); }
+        .category-relevance.low { color: var(--low-grey); }
+
+        /* About section */
+        .about-section {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .about-section h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .about-section h3 {
+            color: var(--primary-teal);
+            margin: 1.5rem 0 0.75rem 0;
+        }
+
+        .about-section p {
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .scoring-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .scoring-table th,
+        .scoring-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-colour);
+        }
+
+        .scoring-table th {
+            background: var(--light-grey);
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group select,
+            .filter-group input {
+                width: 100%;
+            }
+
+            .legislation-header {
+                flex-direction: column;
+            }
+
+            .legislation-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>NI/EU Law Relevance Tracker</h1>
+            <p class="header-subtitle">Monitoring Windsor Framework Annex 2 legislation for Northern Ireland</p>
+        </div>
+    </header>
+
+    <nav class="nav-tabs">
+        <div class="nav-tabs-inner">
+            <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+            <button class="nav-tab" data-tab="categories">Annex 2 Categories</button>
+            <button class="nav-tab" data-tab="about">About &amp; Scoring</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-bar">
+                <div class="stat-card critical">
+                    <div class="stat-label">Critical Priority</div>
+                    <div class="stat-value" id="stat-critical">2</div>
+                </div>
+                <div class="stat-card high">
+                    <div class="stat-label">High Priority</div>
+                    <div class="stat-value" id="stat-high">5</div>
+                </div>
+                <div class="stat-card medium">
+                    <div class="stat-label">Medium Priority</div>
+                    <div class="stat-value" id="stat-medium">12</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Open Consultations</div>
+                    <div class="stat-value" id="stat-consultations">3</div>
+                </div>
+            </div>
+
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label>Priority</label>
+                    <select id="filter-priority">
+                        <option value="">All priorities</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Category</label>
+                    <select id="filter-category">
+                        <option value="">All categories</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Department</label>
+                    <select id="filter-department">
+                        <option value="">All departments</option>
+                        <option value="DAERA">DAERA</option>
+                        <option value="DoH">DoH</option>
+                        <option value="DfE">DfE</option>
+                        <option value="DfI">DfI</option>
+                        <option value="DoF">DoF</option>
+                        <option value="DoJ">DoJ</option>
+                        <option value="DfC">DfC</option>
+                        <option value="TEO">TEO</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Search</label>
+                    <input type="text" id="filter-search" placeholder="Search legislation...">
+                </div>
+            </div>
+
+            <div class="legislation-list" id="legislation-list">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Categories Tab -->
+        <div id="categories" class="tab-content">
+            <div class="categories-grid" id="categories-grid">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- About Tab -->
+        <div id="about" class="tab-content">
+            <div class="about-section">
+                <h2>About This Tracker</h2>
+                <p>This tool monitors EU legislation that applies to Northern Ireland under the Windsor Framework (specifically Annex 2 of the Protocol on Ireland/Northern Ireland). It helps identify which legislation is most relevant to NI consumers and which NI departments should be aware.</p>
+
+                <h3>How Scoring Works</h3>
+                <p>Each piece of legislation receives a deterministic score based on the following factors. The same input always produces the same output - no AI guessing.</p>
+
+                <table class="scoring-table">
+                    <thead>
+                        <tr>
+                            <th>Factor</th>
+                            <th>Points</th>
+                            <th>Condition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Direct Annex 2 match</td>
+                            <td>+10</td>
+                            <td>Legislation explicitly listed or directly amends/replaces listed legislation</td>
+                        </tr>
+                        <tr>
+                            <td>Category keyword match</td>
+                            <td>+5</td>
+                            <td>Topic matches category keywords but not explicitly listed</td>
+                        </tr>
+                        <tr>
+                            <td>High consumer relevance</td>
+                            <td>+3</td>
+                            <td>Category has high consumer impact (e.g., food, toys, medicines)</td>
+                        </tr>
+                        <tr>
+                            <td>Medium consumer relevance</td>
+                            <td>+1</td>
+                            <td>Category has moderate consumer impact</td>
+                        </tr>
+                        <tr>
+                            <td>Consultation closing &lt;14 days</td>
+                            <td>+5</td>
+                            <td>Open EU consultation with deadline within 2 weeks</td>
+                        </tr>
+                        <tr>
+                            <td>Consultation closing &lt;30 days</td>
+                            <td>+3</td>
+                            <td>Open EU consultation with deadline within 1 month</td>
+                        </tr>
+                        <tr>
+                            <td>Consultation open</td>
+                            <td>+2</td>
+                            <td>Open EU consultation with deadline more than 30 days away</td>
+                        </tr>
+                        <tr>
+                            <td>DSC proposed list</td>
+                            <td>+4</td>
+                            <td>On NI Assembly DSC proposed new or replacement acts list</td>
+                        </tr>
+                        <tr>
+                            <td>DSC published list</td>
+                            <td>+2</td>
+                            <td>On NI Assembly DSC published acts list</td>
+                        </tr>
+                        <tr>
+                            <td>Regulation</td>
+                            <td>+2</td>
+                            <td>EU Regulation (directly applicable)</td>
+                        </tr>
+                        <tr>
+                            <td>Directive/Decision</td>
+                            <td>+1</td>
+                            <td>EU Directive or Decision</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Priority Levels</h3>
+                <table class="scoring-table">
+                    <thead>
+                        <tr>
+                            <th>Priority</th>
+                            <th>Score</th>
+                            <th>Action Required</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="priority-badge critical">Critical</span></td>
+                            <td>18+</td>
+                            <td>Immediate attention - prepare consultation response or brief</td>
+                        </tr>
+                        <tr>
+                            <td><span class="priority-badge high">High</span></td>
+                            <td>12-17</td>
+                            <td>Monitor closely - plan engagement</td>
+                        </tr>
+                        <tr>
+                            <td><span class="priority-badge medium">Medium</span></td>
+                            <td>6-11</td>
+                            <td>Track for future developments</td>
+                        </tr>
+                        <tr>
+                            <td><span class="priority-badge low">Low</span></td>
+                            <td>0-5</td>
+                            <td>Log for completeness</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Data Sources</h3>
+                <p>This tracker draws from:</p>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                    <li><strong>EUR-Lex</strong> - Official EU legislation database</li>
+                    <li><strong>Windsor Framework Annex 2</strong> - The 47 categories of applicable EU law</li>
+                    <li><strong>NI Assembly DSC</strong> - Democratic Scrutiny Committee monitoring lists</li>
+                    <li><strong>EU Commission "Have Your Say"</strong> - Open consultations</li>
+                </ul>
+
+                <h3>Annex 2 Categories</h3>
+                <p>There are 47 categories in Annex 2, covering areas from customs and trade to food safety, medicines, and environmental standards. See the "Annex 2 Categories" tab for the complete list.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>NI/EU Law Relevance Tracker - Data updates daily at 02:00</p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;">Categories based on Windsor Framework Annex 2 (Provisions of Union Law referred to in Article 5(4))</p>
+    </footer>
+
+    <script>
+        // ============================================
+        // ANNEX 2 CATEGORIES SCHEMA
+        // ============================================
+        const ANNEX2_CATEGORIES = [
+            { number: 1, name: "General customs aspects", consumerRelevance: "low", keywords: ["customs", "customs code", "mutual assistance", "recovery of claims"] },
+            { number: 2, name: "Protection of the Union's financial interests", consumerRelevance: "low", keywords: ["anti-fraud", "OLAF", "financial interests"] },
+            { number: 3, name: "Trade statistics", consumerRelevance: "low", keywords: ["trade statistics", "trading of goods", "external trade"] },
+            { number: 4, name: "General trade related aspects", consumerRelevance: "low", keywords: ["tariff preferences", "exports", "imports", "textile", "conflict minerals"] },
+            { number: 5, name: "Trade defence instruments", consumerRelevance: "low", keywords: ["anti-dumping", "anti-subsidy", "safeguard", "subsidised imports"] },
+            { number: 6, name: "Regulations on bilateral safeguards", consumerRelevance: "low", keywords: ["bilateral safeguards", "stabilisation", "association agreement"] },
+            { number: 7, name: "Others", consumerRelevance: "medium", keywords: ["compulsory licensing", "patents", "pharmaceutical products", "public health"] },
+            { number: 8, name: "Goods - general provisions", consumerRelevance: "high", keywords: ["technical regulations", "standardisation", "market surveillance", "product safety", "CE marking"] },
+            { number: 9, name: "Motor vehicles, including agricultural and forestry tractors", consumerRelevance: "high", keywords: ["motor vehicles", "type-approval", "vehicle safety", "emissions", "Euro 5", "Euro 6", "tractors"] },
+            { number: 10, name: "Lifting and mechanical handling appliances", consumerRelevance: "medium", keywords: ["lifts", "wire-ropes", "chains", "hooks", "lifting equipment"] },
+            { number: 11, name: "Gas appliances", consumerRelevance: "high", keywords: ["gas appliances", "boilers", "hot-water boilers", "gaseous fuels"] },
+            { number: 12, name: "Pressure vessels", consumerRelevance: "medium", keywords: ["pressure vessels", "aerosol", "transportable pressure equipment"] },
+            { number: 13, name: "Measuring instruments", consumerRelevance: "high", keywords: ["measuring instruments", "metrological", "weighing", "prepackaged products"] },
+            { number: 14, name: "Construction products, machinery, cableways, personal protective equipment", consumerRelevance: "high", keywords: ["construction products", "machinery", "cableways", "personal protective equipment", "PPE"] },
+            { number: 15, name: "Electrical and radio equipment", consumerRelevance: "high", keywords: ["electrical equipment", "radio equipment", "electromagnetic compatibility", "voltage"] },
+            { number: 16, name: "Textiles, footwear", consumerRelevance: "high", keywords: ["textiles", "footwear", "fibre composition", "labelling"] },
+            { number: 17, name: "Cosmetics, toys", consumerRelevance: "high", keywords: ["cosmetics", "toys", "toy safety", "cosmetic products"] },
+            { number: 18, name: "Recreational craft", consumerRelevance: "medium", keywords: ["recreational craft", "personal watercraft", "boats"] },
+            { number: 19, name: "Explosives and pyrotechnic articles", consumerRelevance: "medium", keywords: ["explosives", "pyrotechnic", "fireworks"] },
+            { number: 20, name: "Medicinal products", consumerRelevance: "high", keywords: ["medicinal products", "medicines", "pharmaceuticals", "veterinary medicinal", "clinical trials"] },
+            { number: 21, name: "Medical devices", consumerRelevance: "high", keywords: ["medical devices", "in vitro diagnostic", "implantable"] },
+            { number: 22, name: "Substances of human origin", consumerRelevance: "high", keywords: ["blood", "tissues", "cells", "organs", "transplantation"] },
+            { number: 23, name: "Chemicals and related", consumerRelevance: "high", keywords: ["chemicals", "REACH", "fertilisers", "detergents", "batteries", "hazardous substances"] },
+            { number: 24, name: "Pesticides, biocides", consumerRelevance: "high", keywords: ["pesticides", "biocides", "plant protection products", "maximum residue levels"] },
+            { number: 25, name: "Waste", consumerRelevance: "medium", keywords: ["waste", "shipments of waste", "packaging waste", "ship recycling"] },
+            { number: 26, name: "Environment, energy efficiency", consumerRelevance: "high", keywords: ["environment", "energy efficiency", "invasive species", "ecolabel", "fluorinated gases", "energy labelling"] },
+            { number: 27, name: "Marine equipment", consumerRelevance: "low", keywords: ["marine equipment", "ship equipment"] },
+            { number: 28, name: "Rail transport", consumerRelevance: "low", keywords: ["rail", "railway", "interoperability"] },
+            { number: 29, name: "Food - general", consumerRelevance: "high", keywords: ["food law", "food safety", "EFSA", "food information", "nutrition claims"] },
+            { number: 30, name: "Food - hygiene", consumerRelevance: "high", keywords: ["food hygiene", "hygiene of foodstuffs", "food of animal origin"] },
+            { number: 31, name: "Food - ingredients, traces, residues, marketing standards", consumerRelevance: "high", keywords: ["food additives", "flavourings", "contaminants", "novel foods", "infant food"] },
+            { number: 32, name: "Food contact material", consumerRelevance: "high", keywords: ["food contact", "food contact material", "materials intended to come into contact with food"] },
+            { number: 33, name: "Food - other", consumerRelevance: "high", keywords: ["ionising radiation", "organic production", "organic products", "mineral waters"] },
+            { number: 34, name: "Feed - products and hygiene", consumerRelevance: "medium", keywords: ["animal feed", "feed", "feed additives", "medicated feedingstuffs"] },
+            { number: 35, name: "GMOs", consumerRelevance: "high", keywords: ["GMO", "genetically modified", "GM food", "GM feed", "traceability"] },
+            { number: 36, name: "Live animals, germinal products and products of animal origin", consumerRelevance: "medium", keywords: ["live animals", "animal health", "bovine", "swine", "poultry", "semen", "embryos"] },
+            { number: 37, name: "Animal disease control, zoonosis control", consumerRelevance: "medium", keywords: ["animal disease", "zoonosis", "TSE", "BSE", "avian influenza", "swine fever"] },
+            { number: 38, name: "Animal identification", consumerRelevance: "medium", keywords: ["animal identification", "registration", "traceability", "beef labelling"] },
+            { number: 39, name: "Animal breeding", consumerRelevance: "low", keywords: ["animal breeding", "zootechnical", "breeding animals"] },
+            { number: 40, name: "Animal welfare", consumerRelevance: "high", keywords: ["animal welfare", "protection of animals", "transport of animals", "slaughter"] },
+            { number: 41, name: "Plant health", consumerRelevance: "medium", keywords: ["plant health", "pests of plants", "harmful organisms", "phytosanitary"] },
+            { number: 42, name: "Plant reproductive material", consumerRelevance: "low", keywords: ["seed", "cereal seed", "vegetable seed", "forest reproductive material"] },
+            { number: 43, name: "Official controls, veterinary checks", consumerRelevance: "medium", keywords: ["official controls", "veterinary checks", "border inspection"] },
+            { number: 44, name: "Sanitary and phytosanitary - Other", consumerRelevance: "high", keywords: ["hormones", "beta-agonists", "residue monitoring"] },
+            { number: 45, name: "Intellectual property", consumerRelevance: "high", keywords: ["geographical indications", "PDO", "PGI", "spirit drinks", "wine"] },
+            { number: 46, name: "Fisheries and aquaculture", consumerRelevance: "medium", keywords: ["fisheries", "aquaculture", "fish", "IUU fishing", "bluefin tuna"] },
+            { number: 47, name: "Other", consumerRelevance: "medium", keywords: ["crude oil", "euro coins", "tobacco", "cultural goods", "dual-use items", "weapons", "firearms"] }
+        ];
+
+        // ============================================
+        // DEPARTMENT MAPPING
+        // ============================================
+        const DEPARTMENT_MAPPING = {
+            1: { primary: "DoF", secondary: ["DfE"] },
+            2: { primary: "DoF", secondary: [] },
+            3: { primary: "DfE", secondary: ["DoF"] },
+            4: { primary: "DfE", secondary: [] },
+            5: { primary: "DfE", secondary: [] },
+            6: { primary: "DfE", secondary: [] },
+            7: { primary: "DoH", secondary: ["DfE"] },
+            8: { primary: "DfE", secondary: [] },
+            9: { primary: "DfI", secondary: ["DAERA"] },
+            10: { primary: "DfE", secondary: [] },
+            11: { primary: "DfE", secondary: [] },
+            12: { primary: "DfE", secondary: [] },
+            13: { primary: "DfE", secondary: [] },
+            14: { primary: "DfE", secondary: ["DfC"] },
+            15: { primary: "DfE", secondary: [] },
+            16: { primary: "DfE", secondary: [] },
+            17: { primary: "DfE", secondary: ["DoH"] },
+            18: { primary: "DfI", secondary: [] },
+            19: { primary: "DoJ", secondary: ["DfE"] },
+            20: { primary: "DoH", secondary: [] },
+            21: { primary: "DoH", secondary: [] },
+            22: { primary: "DoH", secondary: [] },
+            23: { primary: "DAERA", secondary: ["DoH", "DfE"] },
+            24: { primary: "DAERA", secondary: ["DoH"] },
+            25: { primary: "DAERA", secondary: [] },
+            26: { primary: "DAERA", secondary: ["DfE"] },
+            27: { primary: "DfI", secondary: [] },
+            28: { primary: "DfI", secondary: [] },
+            29: { primary: "DoH", secondary: ["DAERA"] },
+            30: { primary: "DoH", secondary: ["DAERA"] },
+            31: { primary: "DoH", secondary: ["DAERA"] },
+            32: { primary: "DoH", secondary: [] },
+            33: { primary: "DoH", secondary: ["DAERA"] },
+            34: { primary: "DAERA", secondary: [] },
+            35: { primary: "DAERA", secondary: ["DoH"] },
+            36: { primary: "DAERA", secondary: [] },
+            37: { primary: "DAERA", secondary: ["DoH"] },
+            38: { primary: "DAERA", secondary: [] },
+            39: { primary: "DAERA", secondary: [] },
+            40: { primary: "DAERA", secondary: [] },
+            41: { primary: "DAERA", secondary: [] },
+            42: { primary: "DAERA", secondary: [] },
+            43: { primary: "DAERA", secondary: ["DoH"] },
+            44: { primary: "DAERA", secondary: ["DoH"] },
+            45: { primary: "DfE", secondary: ["DAERA"] },
+            46: { primary: "DAERA", secondary: [] },
+            47: { primary: "DfE", secondary: ["DoJ", "TEO"] }
+        };
+
+        // ============================================
+        // SCORING FUNCTIONS (DETERMINISTIC)
+        // ============================================
+        function calculateScore(legislation) {
+            let score = 0;
+            const breakdown = {};
+
+            // Category match
+            if (legislation.directMatch) {
+                score += 10;
+                breakdown.categoryMatch = "+10 (direct Annex 2 match)";
+            } else if (legislation.keywordMatch) {
+                score += 5;
+                breakdown.categoryMatch = "+5 (keyword match)";
+            } else {
+                breakdown.categoryMatch = "+0 (no match)";
+            }
+
+            // Consumer relevance boost
+            const category = ANNEX2_CATEGORIES.find(c => c.number === legislation.categoryNumber);
+            if (category) {
+                if (category.consumerRelevance === "high") {
+                    score += 3;
+                    breakdown.consumerRelevance = "+3 (high consumer relevance)";
+                } else if (category.consumerRelevance === "medium") {
+                    score += 1;
+                    breakdown.consumerRelevance = "+1 (medium consumer relevance)";
+                } else {
+                    breakdown.consumerRelevance = "+0 (low consumer relevance)";
+                }
+            }
+
+            // Consultation status
+            if (legislation.consultationDaysRemaining !== null) {
+                if (legislation.consultationDaysRemaining <= 14) {
+                    score += 5;
+                    breakdown.consultation = `+5 (consultation closes in ${legislation.consultationDaysRemaining} days)`;
+                } else if (legislation.consultationDaysRemaining <= 30) {
+                    score += 3;
+                    breakdown.consultation = `+3 (consultation closes in ${legislation.consultationDaysRemaining} days)`;
+                } else {
+                    score += 2;
+                    breakdown.consultation = "+2 (consultation open)";
+                }
+            } else {
+                breakdown.consultation = "+0 (no open consultation)";
+            }
+
+            // DSC monitoring
+            if (legislation.dscStatus === "proposed_new" || legislation.dscStatus === "proposed_replacement") {
+                score += 4;
+                breakdown.dsc = "+4 (on DSC proposed list)";
+            } else if (legislation.dscStatus === "published") {
+                score += 2;
+                breakdown.dsc = "+2 (on DSC published list)";
+            } else {
+                breakdown.dsc = "+0 (not on DSC list)";
+            }
+
+            // Legislation type
+            if (legislation.type === "Regulation") {
+                score += 2;
+                breakdown.type = "+2 (Regulation)";
+            } else if (legislation.type === "Directive" || legislation.type === "Decision") {
+                score += 1;
+                breakdown.type = "+1 (Directive/Decision)";
+            } else {
+                breakdown.type = "+0 (other)";
+            }
+
+            return { score, breakdown };
+        }
+
+        function getPriorityLevel(score) {
+            if (score >= 18) return "critical";
+            if (score >= 12) return "high";
+            if (score >= 6) return "medium";
+            return "low";
+        }
+
+        // ============================================
+        // SAMPLE DATA (to be replaced with real API data)
+        // ============================================
+        const SAMPLE_LEGISLATION = [
+            {
+                id: 1,
+                title: "Regulation (EU) 2025/XXX on general product safety (revision)",
+                celexNumber: "32025R0XXX",
+                type: "Regulation",
+                categoryNumber: 8,
+                directMatch: true,
+                keywordMatch: true,
+                consultationDaysRemaining: 12,
+                consultationUrl: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/XXX",
+                dscStatus: "proposed_replacement",
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0XXX",
+                publishedDate: "2025-01-15"
+            },
+            {
+                id: 2,
+                title: "Directive (EU) 2025/XXX on toy safety (revision of 2009/48/EC)",
+                celexNumber: "32025L0XXX",
+                type: "Directive",
+                categoryNumber: 17,
+                directMatch: true,
+                keywordMatch: true,
+                consultationDaysRemaining: 8,
+                consultationUrl: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/XXX",
+                dscStatus: "proposed_replacement",
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025L0XXX",
+                publishedDate: "2025-01-20"
+            },
+            {
+                id: 3,
+                title: "Regulation (EU) 2025/XXX amending Regulation (EC) No 1223/2009 on cosmetic products",
+                celexNumber: "32025R0YYY",
+                type: "Regulation",
+                categoryNumber: 17,
+                directMatch: true,
+                keywordMatch: true,
+                consultationDaysRemaining: 25,
+                consultationUrl: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/YYY",
+                dscStatus: "proposed_new",
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0YYY",
+                publishedDate: "2025-01-18"
+            },
+            {
+                id: 4,
+                title: "Regulation (EU) 2025/XXX on food information to consumers (amendment)",
+                celexNumber: "32025R0ZZZ",
+                type: "Regulation",
+                categoryNumber: 29,
+                directMatch: true,
+                keywordMatch: true,
+                consultationDaysRemaining: 45,
+                consultationUrl: null,
+                dscStatus: "published",
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0ZZZ",
+                publishedDate: "2025-01-10"
+            },
+            {
+                id: 5,
+                title: "Regulation (EU) 2025/XXX on veterinary medicinal products (amendment)",
+                celexNumber: "32025R0AAA",
+                type: "Regulation",
+                categoryNumber: 20,
+                directMatch: true,
+                keywordMatch: true,
+                consultationDaysRemaining: null,
+                consultationUrl: null,
+                dscStatus: "proposed_new",
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0AAA",
+                publishedDate: "2025-01-22"
+            },
+            {
+                id: 6,
+                title: "Commission Delegated Regulation on energy labelling of refrigerating appliances",
+                celexNumber: "32025R0BBB",
+                type: "Regulation",
+                categoryNumber: 26,
+                directMatch: true,
+                keywordMatch: true,
+                consultationDaysRemaining: null,
+                consultationUrl: null,
+                dscStatus: null,
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0BBB",
+                publishedDate: "2025-01-25"
+            },
+            {
+                id: 7,
+                title: "Regulation (EU) 2025/XXX amending REACH Regulation (EC) No 1907/2006",
+                celexNumber: "32025R0CCC",
+                type: "Regulation",
+                categoryNumber: 23,
+                directMatch: true,
+                keywordMatch: true,
+                consultationDaysRemaining: 60,
+                consultationUrl: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/CCC",
+                dscStatus: null,
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0CCC",
+                publishedDate: "2025-01-05"
+            },
+            {
+                id: 8,
+                title: "Directive (EU) 2025/XXX on unfair commercial practices (amendment)",
+                celexNumber: "32025L0DDD",
+                type: "Directive",
+                categoryNumber: 8,
+                directMatch: false,
+                keywordMatch: true,
+                consultationDaysRemaining: null,
+                consultationUrl: null,
+                dscStatus: null,
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025L0DDD",
+                publishedDate: "2025-01-28"
+            },
+            {
+                id: 9,
+                title: "Regulation (EU) 2025/XXX on customs code implementing measures",
+                celexNumber: "32025R0EEE",
+                type: "Regulation",
+                categoryNumber: 1,
+                directMatch: true,
+                keywordMatch: true,
+                consultationDaysRemaining: null,
+                consultationUrl: null,
+                dscStatus: null,
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0EEE",
+                publishedDate: "2025-01-30"
+            },
+            {
+                id: 10,
+                title: "Regulation (EU) 2025/XXX on animal welfare during transport (revision)",
+                celexNumber: "32025R0FFF",
+                type: "Regulation",
+                categoryNumber: 40,
+                directMatch: true,
+                keywordMatch: true,
+                consultationDaysRemaining: 18,
+                consultationUrl: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/FFF",
+                dscStatus: "proposed_replacement",
+                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0FFF",
+                publishedDate: "2025-02-01"
+            }
+        ];
+
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+        function renderLegislationList(data) {
+            const container = document.getElementById('legislation-list');
+            
+            // Calculate scores and sort
+            const scoredData = data.map(item => {
+                const { score, breakdown } = calculateScore(item);
+                const priority = getPriorityLevel(score);
+                const category = ANNEX2_CATEGORIES.find(c => c.number === item.categoryNumber);
+                const department = DEPARTMENT_MAPPING[item.categoryNumber];
+                return { ...item, score, breakdown, priority, category, department };
+            }).sort((a, b) => b.score - a.score);
+
+            container.innerHTML = scoredData.map(item => `
+                <div class="legislation-card ${item.priority}">
+                    <div class="legislation-header">
+                        <h3 class="legislation-title">
+                            <a href="${item.eurLexUrl}" target="_blank" rel="noopener">${item.title}</a>
+                        </h3>
+                        <span class="priority-badge ${item.priority}">${item.priority}</span>
+                    </div>
+                    <div class="legislation-meta">
+                        <span class="meta-item"><strong>Type:</strong> ${item.type}</span>
+                        <span class="meta-item"><strong>Score:</strong> ${item.score}</span>
+                        <span class="meta-item"><strong>Published:</strong> ${item.publishedDate}</span>
+                        ${item.consultationDaysRemaining !== null ? 
+                            `<span class="meta-item"><strong>Consultation closes:</strong> ${item.consultationDaysRemaining} days</span>` : ''}
+                    </div>
+                    <div class="legislation-tags">
+                        ${item.category ? `<span class="tag category">${item.category.number}. ${item.category.name}</span>` : ''}
+                        ${item.department ? `<span class="tag department">${item.department.primary}</span>` : ''}
+                        ${item.consultationDaysRemaining !== null ? `<span class="tag consultation">Consultation open</span>` : ''}
+                        ${item.dscStatus ? `<span class="tag dsc">DSC ${item.dscStatus.replace('_', ' ')}</span>` : ''}
+                    </div>
+                    <div class="score-breakdown">
+                        <span class="score-breakdown-toggle" onclick="toggleScoreDetails(${item.id})">Show score breakdown ▾</span>
+                        <div class="score-details" id="score-details-${item.id}">
+                            ${Object.entries(item.breakdown).map(([key, value]) => `
+                                <div class="score-row">
+                                    <span>${key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                    <span>${value}</span>
+                                </div>
+                            `).join('')}
+                            <div class="score-row" style="font-weight: bold; border-top: 1px solid #ccc; margin-top: 0.5rem; padding-top: 0.5rem;">
+                                <span>Total</span>
+                                <span>${item.score}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update stats
+            document.getElementById('stat-critical').textContent = scoredData.filter(d => d.priority === 'critical').length;
+            document.getElementById('stat-high').textContent = scoredData.filter(d => d.priority === 'high').length;
+            document.getElementById('stat-medium').textContent = scoredData.filter(d => d.priority === 'medium').length;
+            document.getElementById('stat-consultations').textContent = scoredData.filter(d => d.consultationDaysRemaining !== null).length;
+        }
+
+        function toggleScoreDetails(id) {
+            const details = document.getElementById(`score-details-${id}`);
+            details.classList.toggle('visible');
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categories-grid');
+            container.innerHTML = ANNEX2_CATEGORIES.map(cat => `
+                <div class="category-card">
+                    <div class="category-number">Category ${cat.number}</div>
+                    <div class="category-name">${cat.name}</div>
+                    <div class="category-relevance ${cat.consumerRelevance}">
+                        Consumer relevance: ${cat.consumerRelevance}
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                        <strong>Dept:</strong> ${DEPARTMENT_MAPPING[cat.number]?.primary || 'TBC'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateCategoryFilter() {
+            const select = document.getElementById('filter-category');
+            ANNEX2_CATEGORIES.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.number;
+                option.textContent = `${cat.number}. ${cat.name}`;
+                select.appendChild(option);
+            });
+        }
+
+        // ============================================
+        // FILTERING
+        // ============================================
+        function applyFilters() {
+            const priority = document.getElementById('filter-priority').value;
+            const category = document.getElementById('filter-category').value;
+            const department = document.getElementById('filter-department').value;
+            const search = document.getElementById('filter-search').value.toLowerCase();
+
+            let filtered = SAMPLE_LEGISLATION.filter(item => {
+                const { score } = calculateScore(item);
+                const itemPriority = getPriorityLevel(score);
+                const dept = DEPARTMENT_MAPPING[item.categoryNumber];
+
+                if (priority && itemPriority !== priority) return false;
+                if (category && item.categoryNumber !== parseInt(category)) return false;
+                if (department && dept?.primary !== department && !dept?.secondary?.includes(department)) return false;
+                if (search && !item.title.toLowerCase().includes(search)) return false;
+
+                return true;
+            });
+
+            renderLegislationList(filtered);
+        }
+
+        // ============================================
+        // TAB NAVIGATION
+        // ============================================
+        function setupTabs() {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active from all tabs
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                    // Add active to clicked tab
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+        }
+
+        // ============================================
+        // INITIALISATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            setupTabs();
+            populateCategoryFilter();
+            renderLegislationList(SAMPLE_LEGISLATION);
+            renderCategories();
+
+            // Filter event listeners
+            document.getElementById('filter-priority').addEventListener('change', applyFilters);
+            document.getElementById('filter-category').addEventListener('change', applyFilters);
+            document.getElementById('filter-department').addEventListener('change', applyFilters);
+            document.getElementById('filter-search').addEventListener('input', applyFilters);
+        });
+    </script>
+</body>
+</html>
