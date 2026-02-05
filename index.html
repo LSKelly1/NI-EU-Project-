@@ -431,13 +431,13 @@
                     (item.consultation ? '<span class="meta-item"><strong>Consultation closes:</strong> ' + item.consultation + ' days</span>' : '') +
                     '</div>' +
                     '<div class="legislation-tags">' +
-                    '<span class="tag category">' + (cat ? cat.n + '. ' + cat.name : '') + '</span>' +
+                    '<span class="tag category">' + (cat ? cat.n + '. ' + cat.name : 'Uncategorised') + '</span>' +
                     '<span class="tag department">' + (cat ? cat.dept : '') + '</span>' +
                     (item.consultation ? '<span class="tag consultation">Consultation open</span>' : '') +
                     (item.dsc ? '<span class="tag dsc">DSC monitoring</span>' : '') +
                     '</div>' +
                     '<div class="legislation-actions">' +
-                    '<a href="#" class="action-link primary">View on EUR-Lex</a>' +
+                    '<a href="' + (item.eurlex || '#') + '" target="_blank" class="action-link primary">View on EUR-Lex</a>' +
                     (item.consultation ? '<a href="#" class="action-link consultation">EU Consultation</a>' : '') +
                     (item.dsc ? '<a href="#" class="action-link dsc">DSC Monitoring</a>' : '') +
                     '</div>' +
