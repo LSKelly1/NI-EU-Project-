@@ -348,6 +348,68 @@
             padding: 0.2rem 0;
         }
 
+        /* Action links */
+        .legislation-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-colour);
+        }
+
+        .action-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .action-link.primary {
+            background: var(--primary-teal);
+            color: var(--white);
+        }
+
+        .action-link.primary:hover {
+            background: var(--primary-blue);
+        }
+
+        .action-link.secondary {
+            background: var(--light-grey);
+            color: var(--text-dark);
+            border: 1px solid var(--border-colour);
+        }
+
+        .action-link.secondary:hover {
+            background: var(--light-teal);
+            border-color: var(--primary-teal);
+        }
+
+        .action-link.consultation {
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffcc80;
+        }
+
+        .action-link.consultation:hover {
+            background: #ffe0b2;
+        }
+
+        .action-link.dsc {
+            background: #fce4ec;
+            color: #c2185b;
+            border: 1px solid #f48fb1;
+        }
+
+        .action-link.dsc:hover {
+            background: #f8bbd9;
+        }
+
         /* Tab content */
         .tab-content {
             display: none;
@@ -1070,6 +1132,21 @@
                                 <span>${item.score}</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="legislation-actions">
+                        <a href="${item.eurLexUrl}" target="_blank" rel="noopener" class="action-link primary">
+                            📄 View on EUR-Lex
+                        </a>
+                        ${item.consultationUrl ? `
+                            <a href="${item.consultationUrl}" target="_blank" rel="noopener" class="action-link consultation">
+                                💬 EU Consultation ${item.consultationDaysRemaining !== null ? `(${item.consultationDaysRemaining} days left)` : ''}
+                            </a>
+                        ` : ''}
+                        ${item.dscStatus ? `
+                            <a href="https://www.niassembly.gov.uk/assembly-business/committees/2022-2027/windsor-framework-democratic-scrutiny-committee/" target="_blank" rel="noopener" class="action-link dsc">
+                                🏛️ DSC Monitoring
+                            </a>
+                        ` : ''}
                     </div>
                 </div>
             `).join('');
