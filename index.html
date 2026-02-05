@@ -491,6 +491,81 @@
         renderLegislation(LEGISLATION);
         renderCategories();
         populateCategoryFilter();
+
+        // ============================================
+        // SUPABASE CONNECTION (loads in background)
+        // ============================================
+        var SUPABASE_URL = 'https://emvqzjeohuslrplmzddq.supabase.co';
+        var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtdnF6amVvaHVzbHJwbG16ZGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNjM1MzcsImV4cCI6MjA4NTgzOTUzN30.2v6kmv-C9-zRMvS8-BGPdBTchfIzBKj8Vv1HoVR79Bs';
+
+        function loadFromDatabase() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', SUPABASE_URL + '/rest/v1/legislation_dashboard?select=*', true);
+            xhr.setRequestHeader('apikey', SUPABASE_KEY);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            if (data && data.length > 0) {
+                                // Transform database format to frontend format
+                                var dbLegislation = [];
+                                for (var i = 0; i < data.length; i++) {
+                                    var row = data[i];
+                                    dbLegislation.push({
+                                        id: row.id,
+                                        title: row.title,
+                                        type: row.legislation_type,
+                                        cat: row.category_number,
+                                        score: row.total_score || 0,
+                                        priority: row.priority_level || 'low',
+                                        consultation: row.consultation_days_remaining,
+                                        dsc: row.dsc_status,
+                                        eurlex: row.eurlex_url
+                                    });
+                                }
+                                // Replace sample data with real data
+                                LEGISLATION = dbLegislation;
+                                renderLegislation(LEGISLATION);
+                                updateStats();
+                                console.log('Loaded ' + data.length + ' items from database');
+                            }
+                        } catch (e) {
+                            console.log('Database parse error, using sample data');
+                        }
+                    } else {
+                        console.log('Database unavailable, using sample data');
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.log('Network error, using sample data');
+            };
+            
+            xhr.send();
+        }
+
+        function updateStats() {
+            var critical = 0, high = 0, medium = 0, consultations = 0;
+            for (var i = 0; i < LEGISLATION.length; i++) {
+                var item = LEGISLATION[i];
+                if (item.priority === 'critical') critical++;
+                if (item.priority === 'high') high++;
+                if (item.priority === 'medium') medium++;
+                if (item.consultation) consultations++;
+            }
+            document.getElementById('stat-critical').textContent = critical;
+            document.getElementById('stat-high').textContent = high;
+            document.getElementById('stat-medium').textContent = medium;
+            document.getElementById('stat-consultations').textContent = consultations;
+        }
+
+        // Try to load from database (won't break page if it fails)
+        loadFromDatabase();
     </script>
 </body>
 </html>
