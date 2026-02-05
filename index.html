@@ -21,11 +21,7 @@
             --border-colour: #d1d9e0;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -34,7 +30,6 @@
             line-height: 1.5;
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-teal) 100%);
             color: var(--white);
@@ -42,35 +37,17 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+        .header-content { max-width: 1400px; margin: 0 auto; }
+        .header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .header-subtitle { font-size: 0.9rem; opacity: 0.9; }
 
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .header-subtitle {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        /* Navigation tabs */
         .nav-tabs {
             background: var(--white);
             border-bottom: 1px solid var(--border-colour);
             padding: 0 2rem;
         }
 
-        .nav-tabs-inner {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            gap: 0;
-        }
+        .nav-tabs-inner { max-width: 1400px; margin: 0 auto; display: flex; gap: 0; }
 
         .nav-tab {
             padding: 1rem 1.5rem;
@@ -84,24 +61,11 @@
             transition: all 0.2s ease;
         }
 
-        .nav-tab:hover {
-            color: var(--primary-teal);
-            background: var(--light-teal);
-        }
+        .nav-tab:hover { color: var(--primary-teal); background: var(--light-teal); }
+        .nav-tab.active { color: var(--primary-teal); border-bottom-color: var(--primary-teal); }
 
-        .nav-tab.active {
-            color: var(--primary-teal);
-            border-bottom-color: var(--primary-teal);
-        }
+        .main-content { max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem; }
 
-        /* Main content */
-        .main-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem 2rem;
-        }
-
-        /* Stats bar */
         .stats-bar {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -129,13 +93,8 @@
             margin-bottom: 0.25rem;
         }
 
-        .stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
+        .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--text-dark); }
 
-        /* Filters */
         .filters-bar {
             background: var(--white);
             border-radius: 8px;
@@ -148,21 +107,9 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
 
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .filter-group label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .filter-group select,
-        .filter-group input {
+        .filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .filter-group label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-group select, .filter-group input {
             padding: 0.5rem 0.75rem;
             border: 1px solid var(--border-colour);
             border-radius: 4px;
@@ -170,19 +117,7 @@
             min-width: 180px;
         }
 
-        .filter-group select:focus,
-        .filter-group input:focus {
-            outline: none;
-            border-color: var(--primary-teal);
-            box-shadow: 0 0 0 2px var(--light-teal);
-        }
-
-        /* Legislation list */
-        .legislation-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
+        .legislation-list { display: flex; flex-direction: column; gap: 0.75rem; }
 
         .legislation-card {
             background: var(--white);
@@ -190,42 +125,16 @@
             padding: 1.25rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             border-left: 4px solid var(--low-grey);
-            transition: box-shadow 0.2s ease;
-        }
-
-        .legislation-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
         }
 
         .legislation-card.critical { border-left-color: var(--critical-red); }
         .legislation-card.high { border-left-color: var(--high-amber); }
         .legislation-card.medium { border-left-color: var(--medium-blue); }
-        .legislation-card.low { border-left-color: var(--low-grey); }
 
-        .legislation-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .legislation-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            flex: 1;
-        }
-
-        .legislation-title a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .legislation-title a:hover {
-            color: var(--primary-teal);
-            text-decoration: underline;
-        }
+        .legislation-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem; }
+        .legislation-title { font-size: 1rem; font-weight: 600; color: var(--text-dark); flex: 1; }
+        .legislation-title a { color: inherit; text-decoration: none; }
+        .legislation-title a:hover { color: var(--primary-teal); text-decoration: underline; }
 
         .priority-badge {
             font-size: 0.7rem;
@@ -235,120 +144,25 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             white-space: nowrap;
-        }
-
-        .priority-badge.critical {
-            background: var(--critical-red);
             color: var(--white);
         }
 
-        .priority-badge.high {
-            background: var(--high-amber);
-            color: var(--white);
-        }
+        .priority-badge.critical { background: var(--critical-red); }
+        .priority-badge.high { background: var(--high-amber); }
+        .priority-badge.medium { background: var(--medium-blue); }
+        .priority-badge.low { background: var(--low-grey); }
 
-        .priority-badge.medium {
-            background: var(--medium-blue);
-            color: var(--white);
-        }
+        .legislation-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+        .meta-item { display: flex; align-items: center; gap: 0.35rem; }
+        .meta-item strong { color: var(--text-dark); font-weight: 500; }
 
-        .priority-badge.low {
-            background: var(--low-grey);
-            color: var(--white);
-        }
+        .legislation-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .tag { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 3px; background: var(--light-grey); color: var(--text-muted); }
+        .tag.category { background: var(--light-teal); color: var(--primary-teal); }
+        .tag.department { background: #e8eaf6; color: #3949ab; }
+        .tag.consultation { background: #fff3e0; color: #e65100; }
+        .tag.dsc { background: #fce4ec; color: #c2185b; }
 
-        .legislation-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-
-        .meta-item strong {
-            color: var(--text-dark);
-            font-weight: 500;
-        }
-
-        .legislation-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .tag {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 3px;
-            background: var(--light-grey);
-            color: var(--text-muted);
-        }
-
-        .tag.category {
-            background: var(--light-teal);
-            color: var(--primary-teal);
-        }
-
-        .tag.department {
-            background: #e8eaf6;
-            color: #3949ab;
-        }
-
-        .tag.consultation {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .tag.dsc {
-            background: #fce4ec;
-            color: #c2185b;
-        }
-
-        /* Score breakdown tooltip */
-        .score-breakdown {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid var(--border-colour);
-        }
-
-        .score-breakdown-toggle {
-            cursor: pointer;
-            color: var(--primary-teal);
-            font-size: 0.8rem;
-        }
-
-        .score-breakdown-toggle:hover {
-            text-decoration: underline;
-        }
-
-        .score-details {
-            display: none;
-            margin-top: 0.5rem;
-            padding: 0.75rem;
-            background: var(--light-grey);
-            border-radius: 4px;
-        }
-
-        .score-details.visible {
-            display: block;
-        }
-
-        .score-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.2rem 0;
-        }
-
-        /* Action links */
         .legislation-actions {
             display: flex;
             flex-wrap: wrap;
@@ -367,170 +181,34 @@
             font-weight: 500;
             text-decoration: none;
             border-radius: 4px;
-            transition: all 0.2s ease;
         }
 
-        .action-link.primary {
-            background: var(--primary-teal);
-            color: var(--white);
-        }
+        .action-link.primary { background: var(--primary-teal); color: var(--white); }
+        .action-link.consultation { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+        .action-link.dsc { background: #fce4ec; color: #c2185b; border: 1px solid #f48fb1; }
 
-        .action-link.primary:hover {
-            background: var(--primary-blue);
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        .action-link.secondary {
-            background: var(--light-grey);
-            color: var(--text-dark);
-            border: 1px solid var(--border-colour);
-        }
-
-        .action-link.secondary:hover {
-            background: var(--light-teal);
-            border-color: var(--primary-teal);
-        }
-
-        .action-link.consultation {
-            background: #fff3e0;
-            color: #e65100;
-            border: 1px solid #ffcc80;
-        }
-
-        .action-link.consultation:hover {
-            background: #ffe0b2;
-        }
-
-        .action-link.dsc {
-            background: #fce4ec;
-            color: #c2185b;
-            border: 1px solid #f48fb1;
-        }
-
-        .action-link.dsc:hover {
-            background: #f8bbd9;
-        }
-
-        /* Tab content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Categories view */
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-
-        .category-card {
-            background: var(--white);
-            border-radius: 8px;
-            padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        }
-
-        .category-number {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 0.25rem;
-        }
-
-        .category-name {
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .category-relevance {
-            font-size: 0.8rem;
-        }
-
+        .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+        .category-card { background: var(--white); border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+        .category-number { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+        .category-name { font-weight: 600; color: var(--text-dark); margin-bottom: 0.5rem; }
+        .category-relevance { font-size: 0.8rem; }
         .category-relevance.high { color: var(--critical-red); }
         .category-relevance.medium { color: var(--high-amber); }
         .category-relevance.low { color: var(--low-grey); }
 
-        /* About section */
-        .about-section {
-            background: var(--white);
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        }
+        .about-section { background: var(--white); border-radius: 8px; padding: 2rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+        .about-section h2 { color: var(--primary-blue); margin-bottom: 1rem; }
+        .about-section h3 { color: var(--primary-teal); margin: 1.5rem 0 0.75rem 0; }
+        .about-section p { margin-bottom: 1rem; }
 
-        .about-section h2 {
-            color: var(--primary-blue);
-            margin-bottom: 1rem;
-        }
+        .scoring-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .scoring-table th, .scoring-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border-colour); }
+        .scoring-table th { background: var(--light-grey); font-weight: 600; }
 
-        .about-section h3 {
-            color: var(--primary-teal);
-            margin: 1.5rem 0 0.75rem 0;
-        }
-
-        .about-section p {
-            margin-bottom: 1rem;
-            color: var(--text-dark);
-        }
-
-        .scoring-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-
-        .scoring-table th,
-        .scoring-table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-colour);
-        }
-
-        .scoring-table th {
-            background: var(--light-grey);
-            font-weight: 600;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-            }
-
-            .main-content {
-                padding: 1rem;
-            }
-
-            .filters-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .filter-group select,
-            .filter-group input {
-                width: 100%;
-            }
-
-            .legislation-header {
-                flex-direction: column;
-            }
-
-            .legislation-meta {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-        }
+        .footer { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -543,14 +221,13 @@
 
     <nav class="nav-tabs">
         <div class="nav-tabs-inner">
-            <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
-            <button class="nav-tab" data-tab="categories">Annex 2 Categories</button>
-            <button class="nav-tab" data-tab="about">About &amp; Scoring</button>
+            <button class="nav-tab active" onclick="showTab('dashboard', this)">Dashboard</button>
+            <button class="nav-tab" onclick="showTab('categories', this)">Annex 2 Categories</button>
+            <button class="nav-tab" onclick="showTab('about', this)">About &amp; Scoring</button>
         </div>
     </nav>
 
     <main class="main-content">
-        <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
             <div class="stats-bar">
                 <div class="stat-card critical">
@@ -559,11 +236,11 @@
                 </div>
                 <div class="stat-card high">
                     <div class="stat-label">High Priority</div>
-                    <div class="stat-value" id="stat-high">5</div>
+                    <div class="stat-value" id="stat-high">1</div>
                 </div>
                 <div class="stat-card medium">
                     <div class="stat-label">Medium Priority</div>
-                    <div class="stat-value" id="stat-medium">12</div>
+                    <div class="stat-value" id="stat-medium">0</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Open Consultations</div>
@@ -574,7 +251,7 @@
             <div class="filters-bar">
                 <div class="filter-group">
                     <label>Priority</label>
-                    <select id="filter-priority">
+                    <select id="filter-priority" onchange="applyFilters()">
                         <option value="">All priorities</option>
                         <option value="critical">Critical</option>
                         <option value="high">High</option>
@@ -584,13 +261,13 @@
                 </div>
                 <div class="filter-group">
                     <label>Category</label>
-                    <select id="filter-category">
+                    <select id="filter-category" onchange="applyFilters()">
                         <option value="">All categories</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label>Department</label>
-                    <select id="filter-department">
+                    <select id="filter-department" onchange="applyFilters()">
                         <option value="">All departments</option>
                         <option value="DAERA">DAERA</option>
                         <option value="DoH">DoH</option>
@@ -604,23 +281,17 @@
                 </div>
                 <div class="filter-group">
                     <label>Search</label>
-                    <input type="text" id="filter-search" placeholder="Search legislation...">
+                    <input type="text" id="filter-search" placeholder="Search legislation..." oninput="applyFilters()">
                 </div>
             </div>
 
-            <div class="legislation-list" id="legislation-list">
-                <!-- Populated by JavaScript -->
-            </div>
+            <div class="legislation-list" id="legislation-list"></div>
         </div>
 
-        <!-- Categories Tab -->
         <div id="categories" class="tab-content">
-            <div class="categories-grid" id="categories-grid">
-                <!-- Populated by JavaScript -->
-            </div>
+            <div class="categories-grid" id="categories-grid"></div>
         </div>
 
-        <!-- About Tab -->
         <div id="about" class="tab-content">
             <div class="about-section">
                 <h2>About This Tracker</h2>
@@ -631,761 +302,195 @@
 
                 <table class="scoring-table">
                     <thead>
-                        <tr>
-                            <th>Factor</th>
-                            <th>Points</th>
-                            <th>Condition</th>
-                        </tr>
+                        <tr><th>Factor</th><th>Points</th><th>Condition</th></tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Direct Annex 2 match</td>
-                            <td>+10</td>
-                            <td>Legislation explicitly listed or directly amends/replaces listed legislation</td>
-                        </tr>
-                        <tr>
-                            <td>Category keyword match</td>
-                            <td>+5</td>
-                            <td>Topic matches category keywords but not explicitly listed</td>
-                        </tr>
-                        <tr>
-                            <td>High consumer relevance</td>
-                            <td>+3</td>
-                            <td>Category has high consumer impact (e.g., food, toys, medicines)</td>
-                        </tr>
-                        <tr>
-                            <td>Medium consumer relevance</td>
-                            <td>+1</td>
-                            <td>Category has moderate consumer impact</td>
-                        </tr>
-                        <tr>
-                            <td>Consultation closing &lt;14 days</td>
-                            <td>+5</td>
-                            <td>Open EU consultation with deadline within 2 weeks</td>
-                        </tr>
-                        <tr>
-                            <td>Consultation closing &lt;30 days</td>
-                            <td>+3</td>
-                            <td>Open EU consultation with deadline within 1 month</td>
-                        </tr>
-                        <tr>
-                            <td>Consultation open</td>
-                            <td>+2</td>
-                            <td>Open EU consultation with deadline more than 30 days away</td>
-                        </tr>
-                        <tr>
-                            <td>DSC proposed list</td>
-                            <td>+4</td>
-                            <td>On NI Assembly DSC proposed new or replacement acts list</td>
-                        </tr>
-                        <tr>
-                            <td>DSC published list</td>
-                            <td>+2</td>
-                            <td>On NI Assembly DSC published acts list</td>
-                        </tr>
-                        <tr>
-                            <td>Regulation</td>
-                            <td>+2</td>
-                            <td>EU Regulation (directly applicable)</td>
-                        </tr>
-                        <tr>
-                            <td>Directive/Decision</td>
-                            <td>+1</td>
-                            <td>EU Directive or Decision</td>
-                        </tr>
+                        <tr><td>Direct Annex 2 match</td><td>+10</td><td>Legislation explicitly listed or directly amends/replaces listed legislation</td></tr>
+                        <tr><td>Category keyword match</td><td>+5</td><td>Topic matches category keywords but not explicitly listed</td></tr>
+                        <tr><td>High consumer relevance</td><td>+3</td><td>Category has high consumer impact (e.g., food, toys, medicines)</td></tr>
+                        <tr><td>Medium consumer relevance</td><td>+1</td><td>Category has moderate consumer impact</td></tr>
+                        <tr><td>Consultation closing &lt;14 days</td><td>+5</td><td>Open EU consultation with deadline within 2 weeks</td></tr>
+                        <tr><td>Consultation closing &lt;30 days</td><td>+3</td><td>Open EU consultation with deadline within 1 month</td></tr>
+                        <tr><td>Consultation open</td><td>+2</td><td>Open EU consultation with deadline more than 30 days away</td></tr>
+                        <tr><td>DSC proposed list</td><td>+4</td><td>On NI Assembly DSC proposed new or replacement acts list</td></tr>
+                        <tr><td>DSC published list</td><td>+2</td><td>On NI Assembly DSC published acts list</td></tr>
+                        <tr><td>Regulation</td><td>+2</td><td>EU Regulation (directly applicable)</td></tr>
+                        <tr><td>Directive/Decision</td><td>+1</td><td>EU Directive or Decision</td></tr>
                     </tbody>
                 </table>
 
                 <h3>Priority Levels</h3>
                 <table class="scoring-table">
                     <thead>
-                        <tr>
-                            <th>Priority</th>
-                            <th>Score</th>
-                            <th>Action Required</th>
-                        </tr>
+                        <tr><th>Priority</th><th>Score</th><th>Action Required</th></tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><span class="priority-badge critical">Critical</span></td>
-                            <td>18+</td>
-                            <td>Immediate attention - prepare consultation response or brief</td>
-                        </tr>
-                        <tr>
-                            <td><span class="priority-badge high">High</span></td>
-                            <td>12-17</td>
-                            <td>Monitor closely - plan engagement</td>
-                        </tr>
-                        <tr>
-                            <td><span class="priority-badge medium">Medium</span></td>
-                            <td>6-11</td>
-                            <td>Track for future developments</td>
-                        </tr>
-                        <tr>
-                            <td><span class="priority-badge low">Low</span></td>
-                            <td>0-5</td>
-                            <td>Log for completeness</td>
-                        </tr>
+                        <tr><td><span class="priority-badge critical">Critical</span></td><td>18+</td><td>Immediate attention - prepare consultation response or brief</td></tr>
+                        <tr><td><span class="priority-badge high">High</span></td><td>12-17</td><td>Monitor closely - plan engagement</td></tr>
+                        <tr><td><span class="priority-badge medium">Medium</span></td><td>6-11</td><td>Track for future developments</td></tr>
+                        <tr><td><span class="priority-badge low">Low</span></td><td>0-5</td><td>Log for completeness</td></tr>
                     </tbody>
                 </table>
 
                 <h3>Data Sources</h3>
-                <p>This tracker draws from:</p>
                 <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
                     <li><strong>EUR-Lex</strong> - Official EU legislation database</li>
                     <li><strong>Windsor Framework Annex 2</strong> - The 47 categories of applicable EU law</li>
                     <li><strong>NI Assembly DSC</strong> - Democratic Scrutiny Committee monitoring lists</li>
                     <li><strong>EU Commission "Have Your Say"</strong> - Open consultations</li>
                 </ul>
-
-                <h3>Annex 2 Categories</h3>
-                <p>There are 47 categories in Annex 2, covering areas from customs and trade to food safety, medicines, and environmental standards. See the "Annex 2 Categories" tab for the complete list.</p>
             </div>
         </div>
     </main>
 
     <footer class="footer">
         <p>NI/EU Law Relevance Tracker - Data updates daily at 02:00</p>
-        <p style="margin-top: 0.5rem; font-size: 0.8rem;">Categories based on Windsor Framework Annex 2 (Provisions of Union Law referred to in Article 5(4))</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ============================================
-        // ============================================
-        // ANNEX 2 CATEGORIES SCHEMA
-        // ============================================
-        const ANNEX2_CATEGORIES = [
-            { number: 1, name: "General customs aspects", consumerRelevance: "low", keywords: ["customs", "customs code", "mutual assistance", "recovery of claims"] },
-            { number: 2, name: "Protection of the Union's financial interests", consumerRelevance: "low", keywords: ["anti-fraud", "OLAF", "financial interests"] },
-            { number: 3, name: "Trade statistics", consumerRelevance: "low", keywords: ["trade statistics", "trading of goods", "external trade"] },
-            { number: 4, name: "General trade related aspects", consumerRelevance: "low", keywords: ["tariff preferences", "exports", "imports", "textile", "conflict minerals"] },
-            { number: 5, name: "Trade defence instruments", consumerRelevance: "low", keywords: ["anti-dumping", "anti-subsidy", "safeguard", "subsidised imports"] },
-            { number: 6, name: "Regulations on bilateral safeguards", consumerRelevance: "low", keywords: ["bilateral safeguards", "stabilisation", "association agreement"] },
-            { number: 7, name: "Others", consumerRelevance: "medium", keywords: ["compulsory licensing", "patents", "pharmaceutical products", "public health"] },
-            { number: 8, name: "Goods - general provisions", consumerRelevance: "high", keywords: ["technical regulations", "standardisation", "market surveillance", "product safety", "CE marking"] },
-            { number: 9, name: "Motor vehicles, including agricultural and forestry tractors", consumerRelevance: "high", keywords: ["motor vehicles", "type-approval", "vehicle safety", "emissions", "Euro 5", "Euro 6", "tractors"] },
-            { number: 10, name: "Lifting and mechanical handling appliances", consumerRelevance: "medium", keywords: ["lifts", "wire-ropes", "chains", "hooks", "lifting equipment"] },
-            { number: 11, name: "Gas appliances", consumerRelevance: "high", keywords: ["gas appliances", "boilers", "hot-water boilers", "gaseous fuels"] },
-            { number: 12, name: "Pressure vessels", consumerRelevance: "medium", keywords: ["pressure vessels", "aerosol", "transportable pressure equipment"] },
-            { number: 13, name: "Measuring instruments", consumerRelevance: "high", keywords: ["measuring instruments", "metrological", "weighing", "prepackaged products"] },
-            { number: 14, name: "Construction products, machinery, cableways, personal protective equipment", consumerRelevance: "high", keywords: ["construction products", "machinery", "cableways", "personal protective equipment", "PPE"] },
-            { number: 15, name: "Electrical and radio equipment", consumerRelevance: "high", keywords: ["electrical equipment", "radio equipment", "electromagnetic compatibility", "voltage"] },
-            { number: 16, name: "Textiles, footwear", consumerRelevance: "high", keywords: ["textiles", "footwear", "fibre composition", "labelling"] },
-            { number: 17, name: "Cosmetics, toys", consumerRelevance: "high", keywords: ["cosmetics", "toys", "toy safety", "cosmetic products"] },
-            { number: 18, name: "Recreational craft", consumerRelevance: "medium", keywords: ["recreational craft", "personal watercraft", "boats"] },
-            { number: 19, name: "Explosives and pyrotechnic articles", consumerRelevance: "medium", keywords: ["explosives", "pyrotechnic", "fireworks"] },
-            { number: 20, name: "Medicinal products", consumerRelevance: "high", keywords: ["medicinal products", "medicines", "pharmaceuticals", "veterinary medicinal", "clinical trials"] },
-            { number: 21, name: "Medical devices", consumerRelevance: "high", keywords: ["medical devices", "in vitro diagnostic", "implantable"] },
-            { number: 22, name: "Substances of human origin", consumerRelevance: "high", keywords: ["blood", "tissues", "cells", "organs", "transplantation"] },
-            { number: 23, name: "Chemicals and related", consumerRelevance: "high", keywords: ["chemicals", "REACH", "fertilisers", "detergents", "batteries", "hazardous substances"] },
-            { number: 24, name: "Pesticides, biocides", consumerRelevance: "high", keywords: ["pesticides", "biocides", "plant protection products", "maximum residue levels"] },
-            { number: 25, name: "Waste", consumerRelevance: "medium", keywords: ["waste", "shipments of waste", "packaging waste", "ship recycling"] },
-            { number: 26, name: "Environment, energy efficiency", consumerRelevance: "high", keywords: ["environment", "energy efficiency", "invasive species", "ecolabel", "fluorinated gases", "energy labelling"] },
-            { number: 27, name: "Marine equipment", consumerRelevance: "low", keywords: ["marine equipment", "ship equipment"] },
-            { number: 28, name: "Rail transport", consumerRelevance: "low", keywords: ["rail", "railway", "interoperability"] },
-            { number: 29, name: "Food - general", consumerRelevance: "high", keywords: ["food law", "food safety", "EFSA", "food information", "nutrition claims"] },
-            { number: 30, name: "Food - hygiene", consumerRelevance: "high", keywords: ["food hygiene", "hygiene of foodstuffs", "food of animal origin"] },
-            { number: 31, name: "Food - ingredients, traces, residues, marketing standards", consumerRelevance: "high", keywords: ["food additives", "flavourings", "contaminants", "novel foods", "infant food"] },
-            { number: 32, name: "Food contact material", consumerRelevance: "high", keywords: ["food contact", "food contact material", "materials intended to come into contact with food"] },
-            { number: 33, name: "Food - other", consumerRelevance: "high", keywords: ["ionising radiation", "organic production", "organic products", "mineral waters"] },
-            { number: 34, name: "Feed - products and hygiene", consumerRelevance: "medium", keywords: ["animal feed", "feed", "feed additives", "medicated feedingstuffs"] },
-            { number: 35, name: "GMOs", consumerRelevance: "high", keywords: ["GMO", "genetically modified", "GM food", "GM feed", "traceability"] },
-            { number: 36, name: "Live animals, germinal products and products of animal origin", consumerRelevance: "medium", keywords: ["live animals", "animal health", "bovine", "swine", "poultry", "semen", "embryos"] },
-            { number: 37, name: "Animal disease control, zoonosis control", consumerRelevance: "medium", keywords: ["animal disease", "zoonosis", "TSE", "BSE", "avian influenza", "swine fever"] },
-            { number: 38, name: "Animal identification", consumerRelevance: "medium", keywords: ["animal identification", "registration", "traceability", "beef labelling"] },
-            { number: 39, name: "Animal breeding", consumerRelevance: "low", keywords: ["animal breeding", "zootechnical", "breeding animals"] },
-            { number: 40, name: "Animal welfare", consumerRelevance: "high", keywords: ["animal welfare", "protection of animals", "transport of animals", "slaughter"] },
-            { number: 41, name: "Plant health", consumerRelevance: "medium", keywords: ["plant health", "pests of plants", "harmful organisms", "phytosanitary"] },
-            { number: 42, name: "Plant reproductive material", consumerRelevance: "low", keywords: ["seed", "cereal seed", "vegetable seed", "forest reproductive material"] },
-            { number: 43, name: "Official controls, veterinary checks", consumerRelevance: "medium", keywords: ["official controls", "veterinary checks", "border inspection"] },
-            { number: 44, name: "Sanitary and phytosanitary - Other", consumerRelevance: "high", keywords: ["hormones", "beta-agonists", "residue monitoring"] },
-            { number: 45, name: "Intellectual property", consumerRelevance: "high", keywords: ["geographical indications", "PDO", "PGI", "spirit drinks", "wine"] },
-            { number: 46, name: "Fisheries and aquaculture", consumerRelevance: "medium", keywords: ["fisheries", "aquaculture", "fish", "IUU fishing", "bluefin tuna"] },
-            { number: 47, name: "Other", consumerRelevance: "medium", keywords: ["crude oil", "euro coins", "tobacco", "cultural goods", "dual-use items", "weapons", "firearms"] }
+        function showTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        var CATEGORIES = [
+            { n: 1, name: "General customs aspects", rel: "low", dept: "DoF" },
+            { n: 2, name: "Protection of the Union's financial interests", rel: "low", dept: "DoF" },
+            { n: 3, name: "Trade statistics", rel: "low", dept: "DfE" },
+            { n: 4, name: "General trade related aspects", rel: "low", dept: "DfE" },
+            { n: 5, name: "Trade defence instruments", rel: "low", dept: "DfE" },
+            { n: 6, name: "Regulations on bilateral safeguards", rel: "low", dept: "DfE" },
+            { n: 7, name: "Others", rel: "medium", dept: "DoH" },
+            { n: 8, name: "Goods - general provisions", rel: "high", dept: "DfE" },
+            { n: 9, name: "Motor vehicles, including agricultural and forestry tractors", rel: "high", dept: "DfI" },
+            { n: 10, name: "Lifting and mechanical handling appliances", rel: "medium", dept: "DfE" },
+            { n: 11, name: "Gas appliances", rel: "high", dept: "DfE" },
+            { n: 12, name: "Pressure vessels", rel: "medium", dept: "DfE" },
+            { n: 13, name: "Measuring instruments", rel: "high", dept: "DfE" },
+            { n: 14, name: "Construction products, machinery, cableways, PPE", rel: "high", dept: "DfE" },
+            { n: 15, name: "Electrical and radio equipment", rel: "high", dept: "DfE" },
+            { n: 16, name: "Textiles, footwear", rel: "high", dept: "DfE" },
+            { n: 17, name: "Cosmetics, toys", rel: "high", dept: "DfE" },
+            { n: 18, name: "Recreational craft", rel: "medium", dept: "DfI" },
+            { n: 19, name: "Explosives and pyrotechnic articles", rel: "medium", dept: "DoJ" },
+            { n: 20, name: "Medicinal products", rel: "high", dept: "DoH" },
+            { n: 21, name: "Medical devices", rel: "high", dept: "DoH" },
+            { n: 22, name: "Substances of human origin", rel: "high", dept: "DoH" },
+            { n: 23, name: "Chemicals and related", rel: "high", dept: "DAERA" },
+            { n: 24, name: "Pesticides, biocides", rel: "high", dept: "DAERA" },
+            { n: 25, name: "Waste", rel: "medium", dept: "DAERA" },
+            { n: 26, name: "Environment, energy efficiency", rel: "high", dept: "DAERA" },
+            { n: 27, name: "Marine equipment", rel: "low", dept: "DfI" },
+            { n: 28, name: "Rail transport", rel: "low", dept: "DfI" },
+            { n: 29, name: "Food - general", rel: "high", dept: "DoH" },
+            { n: 30, name: "Food - hygiene", rel: "high", dept: "DoH" },
+            { n: 31, name: "Food - ingredients, traces, residues, marketing standards", rel: "high", dept: "DoH" },
+            { n: 32, name: "Food contact material", rel: "high", dept: "DoH" },
+            { n: 33, name: "Food - other", rel: "high", dept: "DoH" },
+            { n: 34, name: "Feed - products and hygiene", rel: "medium", dept: "DAERA" },
+            { n: 35, name: "GMOs", rel: "high", dept: "DAERA" },
+            { n: 36, name: "Live animals, germinal products and products of animal origin", rel: "medium", dept: "DAERA" },
+            { n: 37, name: "Animal disease control, zoonosis control", rel: "medium", dept: "DAERA" },
+            { n: 38, name: "Animal identification", rel: "medium", dept: "DAERA" },
+            { n: 39, name: "Animal breeding", rel: "low", dept: "DAERA" },
+            { n: 40, name: "Animal welfare", rel: "high", dept: "DAERA" },
+            { n: 41, name: "Plant health", rel: "medium", dept: "DAERA" },
+            { n: 42, name: "Plant reproductive material", rel: "low", dept: "DAERA" },
+            { n: 43, name: "Official controls, veterinary checks", rel: "medium", dept: "DAERA" },
+            { n: 44, name: "Sanitary and phytosanitary - Other", rel: "high", dept: "DAERA" },
+            { n: 45, name: "Intellectual property", rel: "high", dept: "DfE" },
+            { n: 46, name: "Fisheries and aquaculture", rel: "medium", dept: "DAERA" },
+            { n: 47, name: "Other", rel: "medium", dept: "DfE" }
         ];
 
-        // ============================================
-        // DEPARTMENT MAPPING
-        // ============================================
-        const DEPARTMENT_MAPPING = {
-            1: { primary: "DoF", secondary: ["DfE"] },
-            2: { primary: "DoF", secondary: [] },
-            3: { primary: "DfE", secondary: ["DoF"] },
-            4: { primary: "DfE", secondary: [] },
-            5: { primary: "DfE", secondary: [] },
-            6: { primary: "DfE", secondary: [] },
-            7: { primary: "DoH", secondary: ["DfE"] },
-            8: { primary: "DfE", secondary: [] },
-            9: { primary: "DfI", secondary: ["DAERA"] },
-            10: { primary: "DfE", secondary: [] },
-            11: { primary: "DfE", secondary: [] },
-            12: { primary: "DfE", secondary: [] },
-            13: { primary: "DfE", secondary: [] },
-            14: { primary: "DfE", secondary: ["DfC"] },
-            15: { primary: "DfE", secondary: [] },
-            16: { primary: "DfE", secondary: [] },
-            17: { primary: "DfE", secondary: ["DoH"] },
-            18: { primary: "DfI", secondary: [] },
-            19: { primary: "DoJ", secondary: ["DfE"] },
-            20: { primary: "DoH", secondary: [] },
-            21: { primary: "DoH", secondary: [] },
-            22: { primary: "DoH", secondary: [] },
-            23: { primary: "DAERA", secondary: ["DoH", "DfE"] },
-            24: { primary: "DAERA", secondary: ["DoH"] },
-            25: { primary: "DAERA", secondary: [] },
-            26: { primary: "DAERA", secondary: ["DfE"] },
-            27: { primary: "DfI", secondary: [] },
-            28: { primary: "DfI", secondary: [] },
-            29: { primary: "DoH", secondary: ["DAERA"] },
-            30: { primary: "DoH", secondary: ["DAERA"] },
-            31: { primary: "DoH", secondary: ["DAERA"] },
-            32: { primary: "DoH", secondary: [] },
-            33: { primary: "DoH", secondary: ["DAERA"] },
-            34: { primary: "DAERA", secondary: [] },
-            35: { primary: "DAERA", secondary: ["DoH"] },
-            36: { primary: "DAERA", secondary: [] },
-            37: { primary: "DAERA", secondary: ["DoH"] },
-            38: { primary: "DAERA", secondary: [] },
-            39: { primary: "DAERA", secondary: [] },
-            40: { primary: "DAERA", secondary: [] },
-            41: { primary: "DAERA", secondary: [] },
-            42: { primary: "DAERA", secondary: [] },
-            43: { primary: "DAERA", secondary: ["DoH"] },
-            44: { primary: "DAERA", secondary: ["DoH"] },
-            45: { primary: "DfE", secondary: ["DAERA"] },
-            46: { primary: "DAERA", secondary: [] },
-            47: { primary: "DfE", secondary: ["DoJ", "TEO"] }
-        };
-
-        // ============================================
-        // DATABASE FUNCTIONS
-        // ============================================
-        async function fetchLegislationFromDB() {
-            try {
-                const { data, error } = await supabase
-                    .from('legislation_dashboard')
-                    .select('*')
-                    .order('total_score', { ascending: false, nullsFirst: false });
-
-                if (error) {
-                    console.error('Error fetching legislation:', error);
-                    return [];
-                }
-                
-                return data || [];
-            } catch (err) {
-                console.error('Database connection error:', err);
-                return [];
-            }
-        }
-
-        async function fetchCategoriesFromDB() {
-            try {
-                const { data, error } = await supabase
-                    .from('annex2_categories')
-                    .select('*')
-                    .order('category_number');
-
-                if (error) {
-                    console.error('Error fetching categories:', error);
-                    return ANNEX2_CATEGORIES; // Fall back to hardcoded
-                }
-                
-                return data || ANNEX2_CATEGORIES;
-            } catch (err) {
-                console.error('Database connection error:', err);
-                return ANNEX2_CATEGORIES;
-            }
-        }
-
-        // Transform DB data to match our frontend format
-        function transformLegislationData(dbData) {
-            return dbData.map(item => ({
-                id: item.id,
-                title: item.title,
-                celexNumber: item.celex_number,
-                type: item.legislation_type,
-                categoryNumber: item.category_number,
-                categoryName: item.category_name,
-                consumerRelevance: item.consumer_relevance,
-                primaryDepartment: item.primary_department,
-                directMatch: item.is_direct_annex2_match,
-                keywordMatch: item.is_keyword_match,
-                consultationDaysRemaining: item.consultation_days_remaining,
-                consultationUrl: item.consultation_url,
-                consultationCloses: item.consultation_closes,
-                dscStatus: item.dsc_status,
-                dscPageUrl: item.dsc_page_url,
-                eurLexUrl: item.eurlex_url,
-                publishedDate: item.date_published,
-                // Pre-calculated scores from DB
-                totalScore: item.total_score,
-                priorityLevel: item.priority_level,
-                scoreBreakdown: {
-                    categoryMatch: item.score_category_match,
-                    consumerRelevance: item.score_consumer_relevance,
-                    consultation: item.score_consultation,
-                    dsc: item.score_dsc,
-                    legislationType: item.score_legislation_type
-                },
-                // Staff review overrides
-                overridePriority: item.override_priority,
-                reviewNotes: item.review_notes,
-                reviewedBy: item.reviewed_by
-            }));
-        }
-
-        // Current data store
-        let currentLegislation = [];
-        let dbCategories = [];
-
-        // ============================================
-        // SCORING FUNCTIONS (DETERMINISTIC)
-        // ============================================
-        function calculateScore(legislation) {
-            let score = 0;
-            const breakdown = {};
-
-            // Category match
-            if (legislation.directMatch) {
-                score += 10;
-                breakdown.categoryMatch = "+10 (direct Annex 2 match)";
-            } else if (legislation.keywordMatch) {
-                score += 5;
-                breakdown.categoryMatch = "+5 (keyword match)";
-            } else {
-                breakdown.categoryMatch = "+0 (no match)";
-            }
-
-            // Consumer relevance boost
-            const category = ANNEX2_CATEGORIES.find(c => c.number === legislation.categoryNumber);
-            if (category) {
-                if (category.consumerRelevance === "high") {
-                    score += 3;
-                    breakdown.consumerRelevance = "+3 (high consumer relevance)";
-                } else if (category.consumerRelevance === "medium") {
-                    score += 1;
-                    breakdown.consumerRelevance = "+1 (medium consumer relevance)";
-                } else {
-                    breakdown.consumerRelevance = "+0 (low consumer relevance)";
-                }
-            }
-
-            // Consultation status
-            if (legislation.consultationDaysRemaining !== null) {
-                if (legislation.consultationDaysRemaining <= 14) {
-                    score += 5;
-                    breakdown.consultation = `+5 (consultation closes in ${legislation.consultationDaysRemaining} days)`;
-                } else if (legislation.consultationDaysRemaining <= 30) {
-                    score += 3;
-                    breakdown.consultation = `+3 (consultation closes in ${legislation.consultationDaysRemaining} days)`;
-                } else {
-                    score += 2;
-                    breakdown.consultation = "+2 (consultation open)";
-                }
-            } else {
-                breakdown.consultation = "+0 (no open consultation)";
-            }
-
-            // DSC monitoring
-            if (legislation.dscStatus === "proposed_new" || legislation.dscStatus === "proposed_replacement") {
-                score += 4;
-                breakdown.dsc = "+4 (on DSC proposed list)";
-            } else if (legislation.dscStatus === "published") {
-                score += 2;
-                breakdown.dsc = "+2 (on DSC published list)";
-            } else {
-                breakdown.dsc = "+0 (not on DSC list)";
-            }
-
-            // Legislation type
-            if (legislation.type === "Regulation") {
-                score += 2;
-                breakdown.type = "+2 (Regulation)";
-            } else if (legislation.type === "Directive" || legislation.type === "Decision") {
-                score += 1;
-                breakdown.type = "+1 (Directive/Decision)";
-            } else {
-                breakdown.type = "+0 (other)";
-            }
-
-            return { score, breakdown };
-        }
-
-        function getPriorityLevel(score) {
-            if (score >= 18) return "critical";
-            if (score >= 12) return "high";
-            if (score >= 6) return "medium";
-            return "low";
-        }
-
-        // ============================================
-        // SUPABASE CONNECTION
-        // ============================================
-        const SUPABASE_URL = 'https://emvqzjeohuslrplmzddq.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtdnF6amVvaHVzbHJwbG16ZGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNjM1MzcsImV4cCI6MjA4NTgzOTUzN30.2v6kmv-C9-zRMvS8-BGPdBTchfIzBKj8Vv1HoVR79Bs';
-
-        // Simple Supabase client
-        const supabase = {
-            from: (table) => ({
-                select: async (columns = '*') => {
-                    const response = await fetch(
-                        `${SUPABASE_URL}/rest/v1/${table}?select=${encodeURIComponent(columns)}`,
-                        {
-                            headers: {
-                                'apikey': SUPABASE_ANON_KEY,
-                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                                'Content-Type': 'application/json'
-                            }
-                        }
-                    );
-                    if (!response.ok) {
-                        throw new Error(`Supabase error: ${response.status}`);
-                    }
-                    const data = await response.json();
-                    return { data, error: null };
-                }
-            })
-        };
-
-        // ============================================
-        // DATA FETCHING
-        // ============================================
-        let legislationData = [];
-        let isLoading = true;
-        let loadError = null;
-
-        async function fetchLegislationFromDatabase() {
-            try {
-                // Fetch from the dashboard view which joins all tables
-                const { data, error } = await supabase.from('legislation_dashboard').select('*');
-                
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    // Transform database format to frontend format
-                    legislationData = data.map(row => ({
-                        id: row.id,
-                        title: row.title,
-                        celexNumber: row.celex_number,
-                        type: row.legislation_type,
-                        categoryNumber: row.category_number,
-                        directMatch: row.is_direct_annex2_match,
-                        keywordMatch: row.is_keyword_match,
-                        consultationDaysRemaining: row.consultation_days_remaining,
-                        consultationUrl: row.consultation_url,
-                        dscStatus: row.dsc_status,
-                        eurLexUrl: row.eurlex_url || `https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:${row.celex_number}`,
-                        publishedDate: row.date_published,
-                        totalScore: row.total_score,
-                        priorityLevel: row.priority_level,
-                        categoryName: row.category_name,
-                        primaryDepartment: row.primary_department,
-                        consumerRelevance: row.consumer_relevance,
-                        reviewNotes: row.review_notes,
-                        overridePriority: row.override_priority
-                    }));
-                    isLoading = false;
-                    return legislationData;
-                } else {
-                    // No data in database yet - show empty state
-                    legislationData = [];
-                    isLoading = false;
-                    return [];
-                }
-            } catch (err) {
-                console.error('Error fetching legislation:', err);
-                loadError = err.message;
-                isLoading = false;
-                return [];
-            }
-        }
-
-        // Fallback sample data for when database is empty
-        const SAMPLE_LEGISLATION = [
-            {
-                id: 1,
-                title: "Regulation (EU) 2025/XXX on general product safety (revision)",
-                celexNumber: "32025R0XXX",
-                type: "Regulation",
-                categoryNumber: 8,
-                directMatch: true,
-                keywordMatch: true,
-                consultationDaysRemaining: 12,
-                consultationUrl: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/XXX",
-                dscStatus: "proposed_replacement",
-                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0XXX",
-                publishedDate: "2025-01-15"
-            },
-            {
-                id: 2,
-                title: "Directive (EU) 2025/XXX on toy safety (revision of 2009/48/EC)",
-                celexNumber: "32025L0XXX",
-                type: "Directive",
-                categoryNumber: 17,
-                directMatch: true,
-                keywordMatch: true,
-                consultationDaysRemaining: 8,
-                consultationUrl: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/XXX",
-                dscStatus: "proposed_replacement",
-                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025L0XXX",
-                publishedDate: "2025-01-20"
-            },
-            {
-                id: 3,
-                title: "Regulation (EU) 2025/XXX amending Regulation (EC) No 1223/2009 on cosmetic products",
-                celexNumber: "32025R0YYY",
-                type: "Regulation",
-                categoryNumber: 17,
-                directMatch: true,
-                keywordMatch: true,
-                consultationDaysRemaining: 25,
-                consultationUrl: "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/YYY",
-                dscStatus: "proposed_new",
-                eurLexUrl: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32025R0YYY",
-                publishedDate: "2025-01-18"
-            }
+        var LEGISLATION = [
+            { id: 1, title: "Regulation (EU) 2025/XXX on general product safety (revision)", type: "Regulation", cat: 8, score: 24, priority: "critical", consultation: 12, dsc: "proposed_replacement" },
+            { id: 2, title: "Directive (EU) 2025/XXX on toy safety (revision of 2009/48/EC)", type: "Directive", cat: 17, score: 23, priority: "critical", consultation: 8, dsc: "proposed_replacement" },
+            { id: 3, title: "Regulation (EU) 2025/XXX amending cosmetic products Regulation", type: "Regulation", cat: 17, score: 17, priority: "high", consultation: 25, dsc: "proposed_new" }
         ];
 
-        // ============================================
-        // RENDER FUNCTIONS
-        // ============================================
-        function renderLegislationList(data) {
-            const container = document.getElementById('legislation-list');
-            
-            // Show loading state
-            if (isLoading) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
-                        <p>Loading legislation data...</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Show error state but still show sample data
-            if (loadError) {
-                console.warn('Database error:', loadError);
-                data = SAMPLE_LEGISLATION;
-            }
-
-            // If no data provided, use sample data
-            if (!data || data.length === 0) {
-                data = SAMPLE_LEGISLATION;
-            }
-            
-            // Calculate scores and sort
-            const scoredData = data.map(item => {
-                // If data comes from database with pre-calculated scores, use those
-                if (item.totalScore !== undefined && item.totalScore !== null) {
-                    const category = ANNEX2_CATEGORIES.find(c => c.number === item.categoryNumber);
-                    const department = DEPARTMENT_MAPPING[item.categoryNumber];
-                    return {
-                        ...item,
-                        score: item.totalScore,
-                        priority: item.overridePriority || item.priorityLevel || getPriorityLevel(item.totalScore),
-                        category,
-                        department,
-                        breakdown: {
-                            categoryMatch: `Category: ${item.categoryName || 'Unknown'}`,
-                            consumerRelevance: `Consumer relevance: ${item.consumerRelevance || 'Unknown'}`,
-                            note: "Score calculated by analysis engine"
-                        }
-                    };
+        function renderLegislation(data) {
+            var container = document.getElementById('legislation-list');
+            var html = '';
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
+                var cat = null;
+                for (var j = 0; j < CATEGORIES.length; j++) {
+                    if (CATEGORIES[j].n === item.cat) { cat = CATEGORIES[j]; break; }
                 }
-                
-                // Otherwise calculate locally (for sample data)
-                const { score, breakdown } = calculateScore(item);
-                const priority = getPriorityLevel(score);
-                const category = ANNEX2_CATEGORIES.find(c => c.number === item.categoryNumber);
-                const department = DEPARTMENT_MAPPING[item.categoryNumber];
-                return { ...item, score, breakdown, priority, category, department };
-            }).sort((a, b) => b.score - a.score);
-
-            container.innerHTML = scoredData.map(item => `
-                <div class="legislation-card ${item.priority}">
-                    <div class="legislation-header">
-                        <h3 class="legislation-title">
-                            <a href="${item.eurLexUrl}" target="_blank" rel="noopener">${item.title}</a>
-                        </h3>
-                        <span class="priority-badge ${item.priority}">${item.priority}</span>
-                    </div>
-                    <div class="legislation-meta">
-                        <span class="meta-item"><strong>Type:</strong> ${item.type}</span>
-                        <span class="meta-item"><strong>Score:</strong> ${item.score}</span>
-                        <span class="meta-item"><strong>Published:</strong> ${item.publishedDate}</span>
-                        ${item.consultationDaysRemaining !== null ? 
-                            `<span class="meta-item"><strong>Consultation closes:</strong> ${item.consultationDaysRemaining} days</span>` : ''}
-                    </div>
-                    <div class="legislation-tags">
-                        ${item.category ? `<span class="tag category">${item.category.number}. ${item.category.name}</span>` : ''}
-                        ${item.department ? `<span class="tag department">${item.department.primary}</span>` : ''}
-                        ${item.consultationDaysRemaining !== null ? `<span class="tag consultation">Consultation open</span>` : ''}
-                        ${item.dscStatus ? `<span class="tag dsc">DSC ${item.dscStatus.replace('_', ' ')}</span>` : ''}
-                    </div>
-                    <div class="score-breakdown">
-                        <span class="score-breakdown-toggle" onclick="toggleScoreDetails(${item.id})">Show score breakdown ▾</span>
-                        <div class="score-details" id="score-details-${item.id}">
-                            ${Object.entries(item.breakdown).map(([key, value]) => `
-                                <div class="score-row">
-                                    <span>${key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                                    <span>${value}</span>
-                                </div>
-                            `).join('')}
-                            <div class="score-row" style="font-weight: bold; border-top: 1px solid #ccc; margin-top: 0.5rem; padding-top: 0.5rem;">
-                                <span>Total</span>
-                                <span>${item.score}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="legislation-actions">
-                        <a href="${item.eurLexUrl}" target="_blank" rel="noopener" class="action-link primary">
-                            📄 View on EUR-Lex
-                        </a>
-                        ${item.consultationUrl ? `
-                            <a href="${item.consultationUrl}" target="_blank" rel="noopener" class="action-link consultation">
-                                💬 EU Consultation ${item.consultationDaysRemaining !== null ? `(${item.consultationDaysRemaining} days left)` : ''}
-                            </a>
-                        ` : ''}
-                        ${item.dscStatus ? `
-                            <a href="https://www.niassembly.gov.uk/assembly-business/committees/2022-2027/windsor-framework-democratic-scrutiny-committee/" target="_blank" rel="noopener" class="action-link dsc">
-                                🏛️ DSC Monitoring
-                            </a>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
-
-            // Update stats
-            document.getElementById('stat-critical').textContent = scoredData.filter(d => d.priority === 'critical').length;
-            document.getElementById('stat-high').textContent = scoredData.filter(d => d.priority === 'high').length;
-            document.getElementById('stat-medium').textContent = scoredData.filter(d => d.priority === 'medium').length;
-            document.getElementById('stat-consultations').textContent = scoredData.filter(d => d.consultationDaysRemaining !== null).length;
-        }
-
-        function toggleScoreDetails(id) {
-            const details = document.getElementById(`score-details-${id}`);
-            details.classList.toggle('visible');
+                html += '<div class="legislation-card ' + item.priority + '">' +
+                    '<div class="legislation-header">' +
+                    '<h3 class="legislation-title">' + item.title + '</h3>' +
+                    '<span class="priority-badge ' + item.priority + '">' + item.priority + '</span>' +
+                    '</div>' +
+                    '<div class="legislation-meta">' +
+                    '<span class="meta-item"><strong>Type:</strong> ' + item.type + '</span>' +
+                    '<span class="meta-item"><strong>Score:</strong> ' + item.score + '</span>' +
+                    (item.consultation ? '<span class="meta-item"><strong>Consultation closes:</strong> ' + item.consultation + ' days</span>' : '') +
+                    '</div>' +
+                    '<div class="legislation-tags">' +
+                    '<span class="tag category">' + (cat ? cat.n + '. ' + cat.name : '') + '</span>' +
+                    '<span class="tag department">' + (cat ? cat.dept : '') + '</span>' +
+                    (item.consultation ? '<span class="tag consultation">Consultation open</span>' : '') +
+                    (item.dsc ? '<span class="tag dsc">DSC monitoring</span>' : '') +
+                    '</div>' +
+                    '<div class="legislation-actions">' +
+                    '<a href="#" class="action-link primary">View on EUR-Lex</a>' +
+                    (item.consultation ? '<a href="#" class="action-link consultation">EU Consultation</a>' : '') +
+                    (item.dsc ? '<a href="#" class="action-link dsc">DSC Monitoring</a>' : '') +
+                    '</div>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
         }
 
         function renderCategories() {
-            const container = document.getElementById('categories-grid');
-            container.innerHTML = ANNEX2_CATEGORIES.map(cat => `
-                <div class="category-card">
-                    <div class="category-number">Category ${cat.number}</div>
-                    <div class="category-name">${cat.name}</div>
-                    <div class="category-relevance ${cat.consumerRelevance}">
-                        Consumer relevance: ${cat.consumerRelevance}
-                    </div>
-                    <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
-                        <strong>Dept:</strong> ${DEPARTMENT_MAPPING[cat.number]?.primary || 'TBC'}
-                    </div>
-                </div>
-            `).join('');
+            var container = document.getElementById('categories-grid');
+            var html = '';
+            for (var i = 0; i < CATEGORIES.length; i++) {
+                var cat = CATEGORIES[i];
+                html += '<div class="category-card">' +
+                    '<div class="category-number">Category ' + cat.n + '</div>' +
+                    '<div class="category-name">' + cat.name + '</div>' +
+                    '<div class="category-relevance ' + cat.rel + '">Consumer relevance: ' + cat.rel + '</div>' +
+                    '<div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);"><strong>Dept:</strong> ' + cat.dept + '</div>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
         }
 
         function populateCategoryFilter() {
-            const select = document.getElementById('filter-category');
-            ANNEX2_CATEGORIES.forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat.number;
-                option.textContent = `${cat.number}. ${cat.name}`;
+            var select = document.getElementById('filter-category');
+            for (var i = 0; i < CATEGORIES.length; i++) {
+                var cat = CATEGORIES[i];
+                var option = document.createElement('option');
+                option.value = cat.n;
+                option.textContent = cat.n + '. ' + cat.name;
                 select.appendChild(option);
-            });
-        }
-
-        // ============================================
-        // FILTERING
-        // ============================================
-        function applyFilters() {
-            const priority = document.getElementById('filter-priority').value;
-            const category = document.getElementById('filter-category').value;
-            const department = document.getElementById('filter-department').value;
-            const search = document.getElementById('filter-search').value.toLowerCase();
-
-            // Use database data if available, otherwise sample data
-            const sourceData = legislationData.length > 0 ? legislationData : SAMPLE_LEGISLATION;
-
-            let filtered = sourceData.filter(item => {
-                // For database data, use pre-calculated priority; for sample, calculate it
-                let itemPriority;
-                if (item.totalScore !== undefined) {
-                    itemPriority = item.overridePriority || item.priorityLevel || getPriorityLevel(item.totalScore);
-                } else {
-                    const { score } = calculateScore(item);
-                    itemPriority = getPriorityLevel(score);
-                }
-                
-                const dept = DEPARTMENT_MAPPING[item.categoryNumber];
-
-                if (priority && itemPriority !== priority) return false;
-                if (category && item.categoryNumber !== parseInt(category)) return false;
-                if (department && dept?.primary !== department && !dept?.secondary?.includes(department)) return false;
-                if (search && !item.title.toLowerCase().includes(search)) return false;
-
-                return true;
-            });
-
-            renderLegislationList(filtered);
-        }
-
-        // ============================================
-        // TAB NAVIGATION
-        // ============================================
-        function setupTabs() {
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // Remove active from all tabs
-                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-                    // Add active to clicked tab
-                    tab.classList.add('active');
-                    document.getElementById(tab.dataset.tab).classList.add('active');
-                });
-            });
-        }
-
-        // ============================================
-        // INITIALISATION
-        // ============================================
-        document.addEventListener('DOMContentLoaded', async () => {
-            // These should always work (no database needed)
-            setupTabs();
-            populateCategoryFilter();
-            renderCategories();
-
-            // Show loading state
-            isLoading = true;
-            renderLegislationList([]);
-
-            try {
-                // Try to fetch from database
-                const dbData = await fetchLegislationFromDatabase();
-                
-                // Render with database data or sample data
-                if (dbData && dbData.length > 0) {
-                    renderLegislationList(dbData);
-                } else {
-                    // No data in DB yet, show sample data
-                    isLoading = false;
-                    renderLegislationList(SAMPLE_LEGISLATION);
-                }
-            } catch (err) {
-                console.error('Failed to load from database:', err);
-                // Show sample data on error
-                isLoading = false;
-                loadError = null; // Don't show error, just use sample data
-                renderLegislationList(SAMPLE_LEGISLATION);
             }
+        }
 
-            // Filter event listeners
-            document.getElementById('filter-priority').addEventListener('change', applyFilters);
-            document.getElementById('filter-category').addEventListener('change', applyFilters);
-            document.getElementById('filter-department').addEventListener('change', applyFilters);
-            document.getElementById('filter-search').addEventListener('input', applyFilters);
-        });
+        function applyFilters() {
+            var priority = document.getElementById('filter-priority').value;
+            var category = document.getElementById('filter-category').value;
+            var search = document.getElementById('filter-search').value.toLowerCase();
+
+            var filtered = [];
+            for (var i = 0; i < LEGISLATION.length; i++) {
+                var item = LEGISLATION[i];
+                if (priority && item.priority !== priority) continue;
+                if (category && item.cat !== parseInt(category)) continue;
+                if (search && item.title.toLowerCase().indexOf(search) === -1) continue;
+                filtered.push(item);
+            }
+            renderLegislation(filtered);
+        }
+
+        renderLegislation(LEGISLATION);
+        renderCategories();
+        populateCategoryFilter();
     </script>
 </body>
 </html>
