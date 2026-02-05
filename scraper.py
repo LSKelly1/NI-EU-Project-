@@ -8,16 +8,13 @@ import re
 import json
 import requests
 from datetime import datetime, timedelta
-from typing import Optional
+from xml.etree import ElementTree
 
 # ============================================
 # CONFIGURATION
 # ============================================
-SUPABASE_URL = os.environ.get('SUPABASE_URL', 'https://emvqzjeohuslrplmzddq.supabase.co')
-SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')  # Use service key for write access
-
-# EUR-Lex SPARQL endpoint
-EURLEX_SPARQL_ENDPOINT = 'https://publications.europa.eu/webapi/rdf/sparql'
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
 
 # ============================================
 # ANNEX 2 CATEGORIES WITH KEYWORDS
@@ -73,184 +70,218 @@ ANNEX2_CATEGORIES = [
 ]
 
 
-def fetch_recent_legislation(days_back: int = 30) -> list:
+def fetch_eurlex_cellar_api():
     """
-    Fetch recent EU legislation from EUR-Lex using their REST API
+    Fetch from EUR-Lex CELLAR API using SPARQL
     """
-    print(f"Fetching legislation from the last {days_back} days...")
-    
-    # Calculate date range
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=days_back)
-    
-    # EUR-Lex search API
-    # We'll search for Regulations and Directives published recently
-    base_url = "https://eur-lex.europa.eu/search.html"
-    
+    print("Fetching from CELLAR SPARQL API...")
     legislation = []
     
-    # Use the EUR-Lex web search API
-    search_url = "https://eur-lex.europa.eu/search.html"
+    sparql_endpoint = "https://publications.europa.eu/webapi/rdf/sparql"
     
-    # Alternative: Use the CELLAR SPARQL endpoint
-    sparql_query = f"""
+    # Query for recent regulations, directives, and decisions
+    query = """
     PREFIX cdm: <http://publications.europa.eu/ontology/cdm#>
     PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
     
-    SELECT DISTINCT ?work ?celex ?title ?date ?type WHERE {{
-        ?work cdm:work_has_resource-type ?type .
+    SELECT DISTINCT ?celex ?title ?date WHERE {
         ?work cdm:resource_legal_id_celex ?celex .
         ?work cdm:work_date_document ?date .
-        ?work cdm:work_has_expression ?expr .
+        ?expr cdm:expression_belongs_to_work ?work .
         ?expr cdm:expression_uses_language <http://publications.europa.eu/resource/authority/language/ENG> .
         ?expr cdm:expression_title ?title .
         
-        FILTER (?type IN (
-            <http://publications.europa.eu/resource/authority/resource-type/REG>,
-            <http://publications.europa.eu/resource/authority/resource-type/DIR>,
-            <http://publications.europa.eu/resource/authority/resource-type/DEC>
-        ))
-        
-        FILTER (?date >= "{start_date.strftime('%Y-%m-%d')}"^^xsd:date)
-    }}
+        FILTER(
+            STRSTARTS(STR(?celex), "32024") || 
+            STRSTARTS(STR(?celex), "32025") || 
+            STRSTARTS(STR(?celex), "32026")
+        )
+    }
     ORDER BY DESC(?date)
-    LIMIT 200
+    LIMIT 150
     """
     
     try:
         response = requests.post(
-            EURLEX_SPARQL_ENDPOINT,
-            data={'query': sparql_query},
+            sparql_endpoint,
+            data={'query': query},
             headers={
                 'Accept': 'application/sparql-results+json',
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'Mozilla/5.0 (compatible; NI-EU-Law-Tracker/1.0)'
             },
             timeout=60
         )
         
+        print(f"  SPARQL response status: {response.status_code}")
+        
         if response.status_code == 200:
-            results = response.json()
-            
-            for binding in results.get('results', {}).get('bindings', []):
-                celex = binding.get('celex', {}).get('value', '')
-                title = binding.get('title', {}).get('value', '')
-                date = binding.get('date', {}).get('value', '')
-                type_uri = binding.get('type', {}).get('value', '')
+            try:
+                results = response.json()
+                bindings = results.get('results', {}).get('bindings', [])
+                print(f"  Found {len(bindings)} results from SPARQL")
                 
-                # Determine legislation type
-                if 'REG' in type_uri:
-                    leg_type = 'Regulation'
-                elif 'DIR' in type_uri:
-                    leg_type = 'Directive'
-                elif 'DEC' in type_uri:
-                    leg_type = 'Decision'
-                else:
-                    leg_type = 'Other'
-                
-                legislation.append({
-                    'celex_number': celex,
-                    'title': title,
-                    'date_published': date[:10] if date else None,
-                    'legislation_type': leg_type,
-                    'eurlex_url': f"https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:{celex}"
-                })
-            
-            print(f"Found {len(legislation)} items from SPARQL endpoint")
-        else:
-            print(f"SPARQL query failed with status {response.status_code}")
-            print(response.text[:500])
-            
-    except Exception as e:
-        print(f"Error fetching from SPARQL: {e}")
-    
-    # If SPARQL didn't work well, try alternative approach with REST API
-    if len(legislation) < 10:
-        print("Trying alternative EUR-Lex REST API...")
-        legislation.extend(fetch_from_eurlex_rest(start_date, end_date))
-    
-    return legislation
-
-
-def fetch_from_eurlex_rest(start_date: datetime, end_date: datetime) -> list:
-    """
-    Alternative method using EUR-Lex REST search
-    """
-    legislation = []
-    
-    # EUR-Lex offers an RSS feed for recent legislation
-    rss_url = "https://eur-lex.europa.eu/EN/display-feed.html?rssId=legislation"
-    
-    try:
-        response = requests.get(rss_url, timeout=30)
-        if response.status_code == 200:
-            # Parse RSS (simple regex extraction)
-            import re
-            
-            # Find all items
-            items = re.findall(r'<item>(.*?)</item>', response.text, re.DOTALL)
-            
-            for item in items[:100]:  # Limit to 100 items
-                title_match = re.search(r'<title>(.*?)</title>', item)
-                link_match = re.search(r'<link>(.*?)</link>', item)
-                date_match = re.search(r'<pubDate>(.*?)</pubDate>', item)
-                
-                if title_match and link_match:
-                    title = title_match.group(1).replace('<![CDATA[', '').replace(']]>', '').strip()
-                    link = link_match.group(1).strip()
+                for binding in bindings:
+                    celex = binding.get('celex', {}).get('value', '')
+                    title = binding.get('title', {}).get('value', '')
+                    date = binding.get('date', {}).get('value', '')[:10] if binding.get('date', {}).get('value') else None
                     
-                    # Extract CELEX from link
-                    celex_match = re.search(r'CELEX[:%](\d+[A-Z]\d+)', link)
-                    celex = celex_match.group(1) if celex_match else None
-                    
-                    if not celex:
-                        celex_match = re.search(r'uri=CELEX:(\d+[A-Z]\d+)', link)
-                        celex = celex_match.group(1) if celex_match else ''
-                    
-                    # Determine type from CELEX or title
-                    leg_type = 'Other'
-                    if celex:
-                        if 'R' in celex[4:5]:
-                            leg_type = 'Regulation'
-                        elif 'L' in celex[4:5]:
-                            leg_type = 'Directive'
-                        elif 'D' in celex[4:5]:
-                            leg_type = 'Decision'
-                    elif 'Regulation' in title:
-                        leg_type = 'Regulation'
-                    elif 'Directive' in title:
-                        leg_type = 'Directive'
-                    
-                    # Parse date
-                    pub_date = None
-                    if date_match:
-                        try:
-                            from email.utils import parsedate_to_datetime
-                            pub_date = parsedate_to_datetime(date_match.group(1)).strftime('%Y-%m-%d')
-                        except:
-                            pass
-                    
-                    if celex:
+                    if celex and title and is_relevant_celex(celex):
+                        leg_type = determine_legislation_type(celex, title)
                         legislation.append({
                             'celex_number': celex,
-                            'title': title,
-                            'date_published': pub_date,
+                            'title': clean_title(title),
+                            'date_published': date,
                             'legislation_type': leg_type,
                             'eurlex_url': f"https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:{celex}"
                         })
-            
-            print(f"Found {len(legislation)} items from RSS feed")
+            except json.JSONDecodeError as e:
+                print(f"  Could not parse JSON response: {e}")
+        else:
+            print(f"  SPARQL query failed: {response.text[:300]}")
             
     except Exception as e:
-        print(f"Error fetching from RSS: {e}")
+        print(f"  SPARQL error: {e}")
     
     return legislation
 
 
-def match_to_category(title: str) -> tuple[Optional[int], bool, list]:
+def fetch_eurlex_rss():
     """
-    Match legislation title to Annex 2 category based on keywords
-    Returns: (category_number, is_direct_match, matched_keywords)
+    Fetch recent legislation from EUR-Lex RSS feeds
     """
+    print("Fetching from EUR-Lex RSS feeds...")
+    legislation = []
+    
+    # EUR-Lex RSS feed for recent OJ L series (legislation)
+    rss_url = "https://eur-lex.europa.eu/rss.do?rssId=legislation"
+    
+    try:
+        response = requests.get(rss_url, timeout=30, headers={
+            'User-Agent': 'Mozilla/5.0 (compatible; NI-EU-Law-Tracker/1.0)'
+        })
+        
+        print(f"  RSS response status: {response.status_code}")
+        
+        if response.status_code == 200:
+            # Parse RSS XML
+            try:
+                root = ElementTree.fromstring(response.content)
+                items = root.findall('.//item')
+                print(f"  Found {len(items)} items in RSS feed")
+                
+                for item in items:
+                    title_elem = item.find('title')
+                    link_elem = item.find('link')
+                    pub_date_elem = item.find('pubDate')
+                    
+                    if title_elem is not None and title_elem.text:
+                        title = title_elem.text
+                        link = link_elem.text if link_elem is not None else ''
+                        
+                        # Extract CELEX from link
+                        celex = extract_celex(link, title)
+                        
+                        if celex and is_relevant_celex(celex):
+                            # Parse date
+                            pub_date = None
+                            if pub_date_elem is not None and pub_date_elem.text:
+                                try:
+                                    from email.utils import parsedate_to_datetime
+                                    pub_date = parsedate_to_datetime(pub_date_elem.text).strftime('%Y-%m-%d')
+                                except:
+                                    pass
+                            
+                            leg_type = determine_legislation_type(celex, title)
+                            legislation.append({
+                                'celex_number': celex,
+                                'title': clean_title(title),
+                                'date_published': pub_date,
+                                'legislation_type': leg_type,
+                                'eurlex_url': f"https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:{celex}"
+                            })
+            except ElementTree.ParseError as e:
+                print(f"  Could not parse RSS XML: {e}")
+    except Exception as e:
+        print(f"  RSS error: {e}")
+    
+    return legislation
+
+
+def extract_celex(link, title):
+    """Extract CELEX number from link or title"""
+    patterns = [
+        r'CELEX[:%3A](\d{5}[A-Z]\d{4})',
+        r'uri=CELEX:(\d{5}[A-Z]\d{4})',
+        r'/(\d{5}[A-Z]\d{4})',
+        r'(\d{5}[RLD]\d{4})',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, link, re.I)
+        if match:
+            return match.group(1).upper()
+    
+    for pattern in patterns:
+        match = re.search(pattern, title, re.I)
+        if match:
+            return match.group(1).upper()
+    
+    # Try to construct from regulation/directive number
+    reg_match = re.search(r'(?:EU\)?\s*)?(\d{4})/(\d+)', title)
+    if reg_match:
+        year = reg_match.group(1)
+        num = reg_match.group(2).zfill(4)
+        if 'Regulation' in title:
+            return f"3{year}R{num}"
+        elif 'Directive' in title:
+            return f"3{year}L{num}"
+        elif 'Decision' in title:
+            return f"3{year}D{num}"
+    
+    return None
+
+
+def is_relevant_celex(celex):
+    """Check if CELEX indicates a Regulation, Directive, or Decision"""
+    if not celex or len(celex) < 6:
+        return False
+    type_char = celex[5].upper()
+    return type_char in ['R', 'L', 'D']
+
+
+def determine_legislation_type(celex, title):
+    """Determine legislation type from CELEX or title"""
+    if celex and len(celex) >= 6:
+        type_char = celex[5].upper()
+        if type_char == 'R':
+            return 'Regulation'
+        elif type_char == 'L':
+            return 'Directive'
+        elif type_char == 'D':
+            return 'Decision'
+    
+    title_lower = title.lower()
+    if 'regulation' in title_lower:
+        return 'Regulation'
+    elif 'directive' in title_lower:
+        return 'Directive'
+    elif 'decision' in title_lower:
+        return 'Decision'
+    
+    return 'Other'
+
+
+def clean_title(title):
+    """Clean up title text"""
+    title = ' '.join(title.split())
+    if len(title) > 500:
+        title = title[:497] + '...'
+    return title
+
+
+def match_to_category(title):
+    """Match legislation title to Annex 2 category based on keywords"""
     title_lower = title.lower()
     
     best_match = None
@@ -271,26 +302,20 @@ def match_to_category(title: str) -> tuple[Optional[int], bool, list]:
             best_match = category['number']
             matched_keywords = keywords_found
     
-    # Consider it a direct match if 2+ keywords match, otherwise keyword match
     is_direct_match = best_score >= 2
     
     return best_match, is_direct_match, matched_keywords
 
 
-def calculate_score(item: dict) -> tuple[int, str]:
-    """
-    Calculate priority score based on our scoring rubric
-    Returns: (score, priority_level)
-    """
+def calculate_score(item):
+    """Calculate priority score"""
     score = 0
     
-    # Category match
     if item.get('is_direct_annex2_match'):
         score += 10
     elif item.get('is_keyword_match'):
         score += 5
     
-    # Consumer relevance
     category_num = item.get('category_number')
     if category_num:
         category = next((c for c in ANNEX2_CATEGORIES if c['number'] == category_num), None)
@@ -300,31 +325,12 @@ def calculate_score(item: dict) -> tuple[int, str]:
             elif category['relevance'] == 'medium':
                 score += 1
     
-    # Consultation (we'll add this later when we scrape consultations)
-    consultation_days = item.get('consultation_days_remaining')
-    if consultation_days is not None:
-        if consultation_days < 14:
-            score += 5
-        elif consultation_days < 30:
-            score += 3
-        else:
-            score += 2
-    
-    # DSC status (we'll add this later)
-    dsc_status = item.get('dsc_status')
-    if dsc_status in ['proposed_new', 'proposed_replacement']:
-        score += 4
-    elif dsc_status == 'published':
-        score += 2
-    
-    # Legislation type
     leg_type = item.get('legislation_type')
     if leg_type == 'Regulation':
         score += 2
     elif leg_type in ['Directive', 'Decision']:
         score += 1
     
-    # Determine priority level
     if score >= 18:
         priority = 'critical'
     elif score >= 12:
@@ -337,27 +343,23 @@ def calculate_score(item: dict) -> tuple[int, str]:
     return score, priority
 
 
-def save_to_supabase(legislation: list) -> dict:
-    """
-    Save legislation to Supabase database
-    """
+def save_to_supabase(legislation):
+    """Save legislation to Supabase database"""
     if not SUPABASE_KEY:
         print("ERROR: SUPABASE_SERVICE_KEY not set")
-        return {'inserted': 0, 'updated': 0, 'errors': ['No API key']}
+        return {'inserted': 0, 'errors': ['No API key']}
     
     headers = {
         'apikey': SUPABASE_KEY,
         'Authorization': f'Bearer {SUPABASE_KEY}',
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates'  # Upsert
+        'Prefer': 'resolution=merge-duplicates'
     }
     
     inserted = 0
-    updated = 0
     errors = []
     
     for item in legislation:
-        # Prepare data for insert
         data = {
             'celex_number': item['celex_number'],
             'title': item['title'],
@@ -373,7 +375,6 @@ def save_to_supabase(legislation: list) -> dict:
         }
         
         try:
-            # Try to insert/upsert
             response = requests.post(
                 f"{SUPABASE_URL}/rest/v1/legislation",
                 headers=headers,
@@ -381,36 +382,32 @@ def save_to_supabase(legislation: list) -> dict:
                 timeout=30
             )
             
-            if response.status_code in [200, 201]:
+            if response.status_code in [200, 201, 409]:
                 inserted += 1
-            elif response.status_code == 409:  # Conflict - already exists
-                updated += 1
             else:
                 errors.append(f"{item['celex_number']}: {response.status_code} - {response.text[:100]}")
                 
         except Exception as e:
             errors.append(f"{item['celex_number']}: {str(e)}")
     
-    return {'inserted': inserted, 'updated': updated, 'errors': errors}
+    return {'inserted': inserted, 'errors': errors}
 
 
-def save_analysis_results(legislation: list) -> dict:
-    """
-    Save calculated scores to analysis_results table
-    """
+def save_analysis_results(legislation):
+    """Save calculated scores to analysis_results table"""
     if not SUPABASE_KEY:
         return {'saved': 0, 'errors': ['No API key']}
     
     headers = {
         'apikey': SUPABASE_KEY,
         'Authorization': f'Bearer {SUPABASE_KEY}',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
     }
     
     saved = 0
     errors = []
     
-    # First, get legislation IDs from database
     for item in legislation:
         try:
             # Get the legislation ID
@@ -426,31 +423,29 @@ def save_analysis_results(legislation: list) -> dict:
                     leg_id = results[0]['id']
                     score, priority = calculate_score(item)
                     
-                    # Calculate score breakdown
                     analysis_data = {
                         'legislation_id': leg_id,
                         'score_category_match': 10 if item.get('is_direct_annex2_match') else (5 if item.get('is_keyword_match') else 0),
                         'score_consumer_relevance': 3 if item.get('consumer_relevance') == 'high' else (1 if item.get('consumer_relevance') == 'medium' else 0),
-                        'score_consultation': 0,  # Will be updated when we add consultation scraping
-                        'score_dsc': 0,  # Will be updated when we add DSC scraping
+                        'score_consultation': 0,
+                        'score_dsc': 0,
                         'score_legislation_type': 2 if item.get('legislation_type') == 'Regulation' else 1,
                         'total_score': score,
                         'priority_level': priority,
                         'calculated_at': datetime.now().isoformat()
                     }
                     
-                    # Upsert analysis results
                     response = requests.post(
                         f"{SUPABASE_URL}/rest/v1/analysis_results",
-                        headers={**headers, 'Prefer': 'resolution=merge-duplicates'},
+                        headers=headers,
                         json=analysis_data,
                         timeout=30
                     )
                     
-                    if response.status_code in [200, 201]:
+                    if response.status_code in [200, 201, 409]:
                         saved += 1
                     else:
-                        errors.append(f"{item['celex_number']}: Analysis save failed - {response.status_code}")
+                        errors.append(f"{item['celex_number']}: Analysis {response.status_code}")
                         
         except Exception as e:
             errors.append(f"{item['celex_number']}: {str(e)}")
@@ -458,61 +453,47 @@ def save_analysis_results(legislation: list) -> dict:
     return {'saved': saved, 'errors': errors}
 
 
-def log_scraper_run(source: str, results: dict) -> None:
-    """
-    Log the scraper run to scraper_log table
-    """
-    if not SUPABASE_KEY:
-        return
-    
-    headers = {
-        'apikey': SUPABASE_KEY,
-        'Authorization': f'Bearer {SUPABASE_KEY}',
-        'Content-Type': 'application/json'
-    }
-    
-    log_data = {
-        'source': source,
-        'items_found': results.get('found', 0),
-        'items_new': results.get('inserted', 0),
-        'items_updated': results.get('updated', 0),
-        'errors': results.get('errors', [])[:10],  # Limit errors stored
-        'started_at': results.get('started_at'),
-        'completed_at': datetime.now().isoformat(),
-        'status': 'completed' if not results.get('errors') else 'completed'
-    }
-    
-    try:
-        requests.post(
-            f"{SUPABASE_URL}/rest/v1/scraper_log",
-            headers=headers,
-            json=log_data,
-            timeout=30
-        )
-    except Exception as e:
-        print(f"Failed to log scraper run: {e}")
-
-
 def main():
-    """
-    Main scraper function
-    """
+    """Main scraper function"""
     print("=" * 50)
     print("NI/EU Law Tracker - EUR-Lex Scraper")
     print(f"Started at: {datetime.now().isoformat()}")
+    print(f"SUPABASE_URL: {SUPABASE_URL[:30]}..." if SUPABASE_URL else "SUPABASE_URL: NOT SET")
+    print(f"SUPABASE_KEY: {'SET' if SUPABASE_KEY else 'NOT SET'}")
     print("=" * 50)
     
-    started_at = datetime.now().isoformat()
+    legislation = []
     
-    # Step 1: Fetch recent legislation
-    legislation = fetch_recent_legislation(days_back=30)
-    print(f"\nFetched {len(legislation)} legislation items")
+    # Method 1: CELLAR SPARQL API
+    legislation.extend(fetch_eurlex_cellar_api())
+    
+    # Method 2: RSS feed
+    if len(legislation) < 20:
+        legislation.extend(fetch_eurlex_rss())
+    
+    # Remove duplicates by CELEX
+    seen = set()
+    unique_legislation = []
+    for item in legislation:
+        if item['celex_number'] not in seen:
+            seen.add(item['celex_number'])
+            unique_legislation.append(item)
+    
+    legislation = unique_legislation
+    print(f"\nTotal unique legislation items: {len(legislation)}")
     
     if not legislation:
-        print("No legislation found, exiting")
+        print("\nNo legislation found from any source!")
+        print("This may be a temporary issue with EUR-Lex APIs.")
+        print("The scraper will try again on the next scheduled run.")
         return
     
-    # Step 2: Match to Annex 2 categories
+    # Show some examples
+    print("\nSample legislation found:")
+    for item in legislation[:5]:
+        print(f"  - {item['celex_number']}: {item['title'][:60]}...")
+    
+    # Match to Annex 2 categories
     print("\nMatching to Annex 2 categories...")
     matched_count = 0
     for item in legislation:
@@ -530,28 +511,23 @@ def main():
     
     print(f"Matched {matched_count} items to Annex 2 categories")
     
-    # Step 3: Save to database
+    # Save to database
     print("\nSaving to Supabase...")
     save_results = save_to_supabase(legislation)
-    print(f"Inserted: {save_results['inserted']}, Updated: {save_results['updated']}")
+    print(f"Saved: {save_results['inserted']} legislation items")
     if save_results['errors']:
         print(f"Errors: {len(save_results['errors'])}")
         for err in save_results['errors'][:5]:
             print(f"  - {err}")
     
-    # Step 4: Calculate and save analysis scores
+    # Calculate and save analysis scores
     print("\nCalculating priority scores...")
     analysis_results = save_analysis_results(legislation)
-    print(f"Saved {analysis_results['saved']} analysis results")
-    
-    # Step 5: Log the run
-    log_scraper_run('eurlex', {
-        'found': len(legislation),
-        'inserted': save_results['inserted'],
-        'updated': save_results['updated'],
-        'errors': save_results['errors'] + analysis_results.get('errors', []),
-        'started_at': started_at
-    })
+    print(f"Analysis results saved: {analysis_results['saved']}")
+    if analysis_results['errors']:
+        print(f"Analysis errors: {len(analysis_results['errors'])}")
+        for err in analysis_results['errors'][:3]:
+            print(f"  - {err}")
     
     print("\n" + "=" * 50)
     print("Scraper completed successfully!")
