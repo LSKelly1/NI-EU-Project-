@@ -752,13 +752,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ============================================
-        // SUPABASE CONNECTION
-        // ============================================
-        const SUPABASE_URL = 'https://emvqzjeohuslrplmzddq.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtdnF6amVvaHVzbHJwbG16ZGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNjM1MzcsImV4cCI6MjA4NTgzOTUzN30.2v6kmv-C9-zRMvS8-BGPdBTchfIzBKj8Vv1HoVR79Bs';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         // ============================================
         // ANNEX 2 CATEGORIES SCHEMA
         // ============================================
@@ -1171,27 +1164,14 @@
                 return;
             }
 
-            // Show error state
+            // Show error state but still show sample data
             if (loadError) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 3rem; color: var(--critical-red);">
-                        <p><strong>Error loading data:</strong> ${loadError}</p>
-                        <p style="margin-top: 1rem; color: var(--text-muted);">Showing sample data instead.</p>
-                    </div>
-                `;
+                console.warn('Database error:', loadError);
                 data = SAMPLE_LEGISLATION;
             }
 
-            // Show empty state
+            // If no data provided, use sample data
             if (!data || data.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 3rem; background: var(--white); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                        <h3 style="color: var(--primary-blue); margin-bottom: 1rem;">No legislation data yet</h3>
-                        <p style="color: var(--text-muted); margin-bottom: 1rem;">The database is empty. Once the scraper runs, legislation will appear here.</p>
-                        <p style="color: var(--text-muted); font-size: 0.9rem;">Showing sample data for preview purposes:</p>
-                    </div>
-                `;
-                // Show sample data below the message
                 data = SAMPLE_LEGISLATION;
             }
             
@@ -1371,23 +1351,33 @@
         // INITIALISATION
         // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
+            // These should always work (no database needed)
             setupTabs();
             populateCategoryFilter();
             renderCategories();
 
             // Show loading state
+            isLoading = true;
             renderLegislationList([]);
 
-            // Try to fetch from database
-            const dbData = await fetchLegislationFromDatabase();
-            
-            // Render with database data or sample data
-            if (dbData && dbData.length > 0) {
-                renderLegislationList(dbData);
-            } else {
-                // No data in DB yet, show sample data
+            try {
+                // Try to fetch from database
+                const dbData = await fetchLegislationFromDatabase();
+                
+                // Render with database data or sample data
+                if (dbData && dbData.length > 0) {
+                    renderLegislationList(dbData);
+                } else {
+                    // No data in DB yet, show sample data
+                    isLoading = false;
+                    renderLegislationList(SAMPLE_LEGISLATION);
+                }
+            } catch (err) {
+                console.error('Failed to load from database:', err);
+                // Show sample data on error
                 isLoading = false;
-                renderLegislationList([]);
+                loadError = null; // Don't show error, just use sample data
+                renderLegislationList(SAMPLE_LEGISLATION);
             }
 
             // Filter event listeners
