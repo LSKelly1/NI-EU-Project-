@@ -130,6 +130,24 @@
         .legislation-card.critical { border-left-color: var(--critical-red); }
         .legislation-card.high { border-left-color: var(--high-amber); }
         .legislation-card.medium { border-left-color: var(--medium-blue); }
+        
+        .legislation-card.baseline { 
+            border-left-color: var(--primary-blue); 
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+        }
+
+        .baseline-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            background: var(--primary-blue);
+            color: var(--white);
+            margin-right: 0.5rem;
+        }
 
         .legislation-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem; }
         .legislation-title { font-size: 1rem; font-weight: 600; color: var(--text-dark); flex: 1; }
@@ -280,6 +298,14 @@
                     </select>
                 </div>
                 <div class="filter-group">
+                    <label>Type</label>
+                    <select id="filter-type" onchange="applyFilters()">
+                        <option value="">All legislation</option>
+                        <option value="recent">Recent only</option>
+                        <option value="baseline">Baseline only</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label>Search</label>
                     <input type="text" id="filter-search" placeholder="Search legislation..." oninput="applyFilters()">
                 </div>
@@ -420,15 +446,20 @@
                 for (var j = 0; j < CATEGORIES.length; j++) {
                     if (CATEGORIES[j].n === item.cat) { cat = CATEGORIES[j]; break; }
                 }
-                html += '<div class="legislation-card ' + item.priority + '">' +
+                var cardClass = item.isBaseline ? 'legislation-card baseline' : 'legislation-card ' + item.priority;
+                var baselineBadge = item.isBaseline ? '<span class="baseline-badge">★ BASELINE</span>' : '';
+                var amendsInfo = item.amendsTitle ? '<span class="meta-item"><strong>Amends:</strong> ' + item.amendsTitle.substring(0, 50) + '...</span>' : '';
+                
+                html += '<div class="' + cardClass + '">' +
                     '<div class="legislation-header">' +
-                    '<h3 class="legislation-title">' + item.title + '</h3>' +
+                    '<h3 class="legislation-title">' + baselineBadge + item.title + '</h3>' +
                     '<span class="priority-badge ' + item.priority + '">' + item.priority + '</span>' +
                     '</div>' +
                     '<div class="legislation-meta">' +
-                    '<span class="meta-item"><strong>Type:</strong> ' + item.type + '</span>' +
-                    '<span class="meta-item"><strong>Score:</strong> ' + item.score + '</span>' +
+                    '<span class="meta-item"><strong>Type:</strong> ' + (item.type || 'Unknown') + '</span>' +
+                    (item.isBaseline ? '' : '<span class="meta-item"><strong>Score:</strong> ' + item.score + '</span>') +
                     (item.consultation ? '<span class="meta-item"><strong>Consultation closes:</strong> ' + item.consultation + ' days</span>' : '') +
+                    amendsInfo +
                     '</div>' +
                     '<div class="legislation-tags">' +
                     '<span class="tag category">' + (cat ? cat.n + '. ' + cat.name : 'Uncategorised') + '</span>' +
@@ -438,7 +469,7 @@
                     '</div>' +
                     '<div class="legislation-actions">' +
                     '<a href="' + (item.eurlex || '#') + '" target="_blank" class="action-link primary">View on EUR-Lex</a>' +
-                    (item.consultation ? '<a href="#" class="action-link consultation">EU Consultation</a>' : '') +
+                    (item.consultationUrl ? '<a href="' + item.consultationUrl + '" target="_blank" class="action-link consultation">EU Consultation</a>' : '') +
                     (item.dsc ? '<a href="#" class="action-link dsc">DSC Monitoring</a>' : '') +
                     '</div>' +
                     '</div>';
@@ -476,6 +507,7 @@
             var priority = document.getElementById('filter-priority').value;
             var category = document.getElementById('filter-category').value;
             var search = document.getElementById('filter-search').value.toLowerCase();
+            var typeFilter = document.getElementById('filter-type').value;
 
             var filtered = [];
             for (var i = 0; i < LEGISLATION.length; i++) {
@@ -483,6 +515,8 @@
                 if (priority && item.priority !== priority) continue;
                 if (category && item.cat !== parseInt(category)) continue;
                 if (search && item.title.toLowerCase().indexOf(search) === -1) continue;
+                if (typeFilter === 'baseline' && !item.isBaseline) continue;
+                if (typeFilter === 'recent' && item.isBaseline) continue;
                 filtered.push(item);
             }
             renderLegislation(filtered);
@@ -523,8 +557,12 @@
                                         score: row.total_score || 0,
                                         priority: row.priority_level || 'low',
                                         consultation: row.consultation_days_remaining,
+                                        consultationUrl: row.consultation_url,
                                         dsc: row.dsc_status,
-                                        eurlex: row.eurlex_url
+                                        eurlex: row.eurlex_url,
+                                        isBaseline: row.is_baseline || false,
+                                        amendsCelex: row.amends_celex,
+                                        amendsTitle: row.amends_title
                                     });
                                 }
                                 // Replace sample data with real data
