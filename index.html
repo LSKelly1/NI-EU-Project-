@@ -179,7 +179,26 @@
         .tag.category { background: var(--light-teal); color: var(--primary-teal); }
         .tag.department { background: #e8eaf6; color: #3949ab; }
         .tag.consultation { background: #fff3e0; color: #e65100; }
+        .tag.consultation-urgent { background: #ffebee; color: #c62828; font-weight: 600; animation: pulse 2s infinite; }
         .tag.dsc { background: #fce4ec; color: #c2185b; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .consultation-countdown {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        .consultation-countdown.urgent { background: #ffebee; color: #c62828; }
+        .consultation-countdown.soon { background: #fff3e0; color: #e65100; }
+        .consultation-countdown.normal { background: #e8f5e9; color: #2e7d32; }
 
         .legislation-actions {
             display: flex;
@@ -303,6 +322,7 @@
                         <option value="">All legislation</option>
                         <option value="recent">Recent only</option>
                         <option value="baseline">Baseline only</option>
+                        <option value="consultation">With open consultation</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -450,6 +470,14 @@
                 var baselineBadge = item.isBaseline ? '<span class="baseline-badge">★ BASELINE</span>' : '';
                 var amendsInfo = item.amendsTitle ? '<span class="meta-item"><strong>Amends:</strong> ' + item.amendsTitle.substring(0, 50) + '...</span>' : '';
                 
+                // Consultation countdown badge
+                var consultationBadge = '';
+                if (item.consultation && item.consultation > 0) {
+                    var urgencyClass = item.consultation <= 7 ? 'urgent' : (item.consultation <= 14 ? 'soon' : 'normal');
+                    var urgencyIcon = item.consultation <= 7 ? '🚨' : (item.consultation <= 14 ? '⏰' : '📅');
+                    consultationBadge = '<span class="consultation-countdown ' + urgencyClass + '">' + urgencyIcon + ' Closes in ' + item.consultation + ' days</span>';
+                }
+                
                 html += '<div class="' + cardClass + '">' +
                     '<div class="legislation-header">' +
                     '<h3 class="legislation-title">' + baselineBadge + item.title + '</h3>' +
@@ -458,18 +486,17 @@
                     '<div class="legislation-meta">' +
                     '<span class="meta-item"><strong>Type:</strong> ' + (item.type || 'Unknown') + '</span>' +
                     (item.isBaseline ? '' : '<span class="meta-item"><strong>Score:</strong> ' + item.score + '</span>') +
-                    (item.consultation ? '<span class="meta-item"><strong>Consultation closes:</strong> ' + item.consultation + ' days</span>' : '') +
                     amendsInfo +
                     '</div>' +
                     '<div class="legislation-tags">' +
                     '<span class="tag category">' + (cat ? cat.n + '. ' + cat.name : 'Uncategorised') + '</span>' +
                     '<span class="tag department">' + (cat ? cat.dept : '') + '</span>' +
-                    (item.consultation ? '<span class="tag consultation">Consultation open</span>' : '') +
+                    consultationBadge +
                     (item.dsc ? '<span class="tag dsc">DSC monitoring</span>' : '') +
                     '</div>' +
                     '<div class="legislation-actions">' +
                     '<a href="' + (item.eurlex || '#') + '" target="_blank" class="action-link primary">View on EUR-Lex</a>' +
-                    (item.consultationUrl ? '<a href="' + item.consultationUrl + '" target="_blank" class="action-link consultation">EU Consultation</a>' : '') +
+                    (item.consultationUrl ? '<a href="' + item.consultationUrl + '" target="_blank" class="action-link consultation">Respond to Consultation</a>' : '') +
                     (item.dsc ? '<a href="#" class="action-link dsc">DSC Monitoring</a>' : '') +
                     '</div>' +
                     '</div>';
@@ -517,6 +544,7 @@
                 if (search && item.title.toLowerCase().indexOf(search) === -1) continue;
                 if (typeFilter === 'baseline' && !item.isBaseline) continue;
                 if (typeFilter === 'recent' && item.isBaseline) continue;
+                if (typeFilter === 'consultation' && !item.consultation) continue;
                 filtered.push(item);
             }
             renderLegislation(filtered);
