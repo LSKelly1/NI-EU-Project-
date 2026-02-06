@@ -367,55 +367,103 @@ def fetch_consultations_rss():
         print(f"  RSS response status: {response.status_code}")
         
         if response.status_code == 200:
+            # Debug: show first 500 chars of response
+            print(f"  RSS content preview: {response.text[:500]}")
+            
             try:
                 root = ElementTree.fromstring(response.content)
+                
+                # Try different paths to find items
                 items = root.findall('.//item')
+                if not items:
+                    items = root.findall('channel/item')
+                if not items:
+                    items = root.findall('.//{http://www.w3.org/2005/Atom}entry')
+                    
                 print(f"  Found {len(items)} items in RSS")
                 
-                for item in items:
+                # Debug: show root tag
+                print(f"  RSS root tag: {root.tag}")
+                
+                for i, item in enumerate(items[:20]):  # Process up to 20
                     title_elem = item.find('title')
                     link_elem = item.find('link')
                     desc_elem = item.find('description')
                     
+                    title = ''
+                    link = ''
+                    desc = ''
+                    
                     if title_elem is not None:
                         title = title_elem.text or ''
-                        link = link_elem.text if link_elem is not None else ''
-                        
-                        # Extract initiative ID from link
-                        init_match = re.search(r'/initiatives/(\d+)', link)
-                        initiative_id = init_match.group(1) if init_match else None
-                        
-                        # Try to find dates in description
-                        desc = desc_elem.text if desc_elem is not None else ''
-                        date_match = re.search(r'until\s+(\d{1,2}\s+\w+\s+\d{4})', desc, re.I)
-                        
-                        end_date = None
-                        days_remaining = None
+                    if link_elem is not None:
+                        link = link_elem.text or link_elem.get('href', '')
+                    if desc_elem is not None:
+                        desc = desc_elem.text or ''
+                    
+                    # Debug first few items
+                    if i < 3:
+                        print(f"  Item {i+1}: {title[:60]}...")
+                        print(f"    Link: {link[:80]}...")
+                    
+                    # Extract initiative ID from link - try multiple patterns
+                    initiative_id = None
+                    init_match = re.search(r'/initiatives/(\d+)', link)
+                    if init_match:
+                        initiative_id = init_match.group(1)
+                    else:
+                        # Try other patterns
+                        init_match = re.search(r'initiative[_-]?id[=:](\d+)', link, re.I)
+                        if init_match:
+                            initiative_id = init_match.group(1)
+                    
+                    # If no ID from link, generate one from title hash
+                    if not initiative_id and title:
+                        initiative_id = f"rss_{abs(hash(title)) % 100000}"
+                    
+                    # Try to find dates in description
+                    end_date = None
+                    days_remaining = 30  # Default assumption
+                    
+                    date_patterns = [
+                        r'until\s+(\d{1,2}\s+\w+\s+\d{4})',
+                        r'closes?\s+(\d{1,2}\s+\w+\s+\d{4})',
+                        r'deadline[:\s]+(\d{1,2}\s+\w+\s+\d{4})',
+                        r'(\d{1,2}\s+\w+\s+\d{4})',
+                    ]
+                    
+                    for pattern in date_patterns:
+                        date_match = re.search(pattern, desc, re.I)
                         if date_match:
                             try:
                                 end_dt = datetime.strptime(date_match.group(1), '%d %B %Y')
                                 end_date = end_dt.strftime('%Y-%m-%d')
                                 days_remaining = (end_dt - datetime.now()).days
+                                break
                             except:
                                 pass
+                    
+                    # Add consultation if we have title and ID
+                    if title and initiative_id:
+                        consultations.append({
+                            'title': title,
+                            'initiative_id': initiative_id,
+                            'consultation_url': link if link else f"https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/{initiative_id}_en",
+                            'date_opens': None,
+                            'date_closes': end_date,
+                            'days_remaining': max(days_remaining, 0) if days_remaining else 30,
+                            'status': 'open',
+                            'policy_areas': []
+                        })
                         
-                        if initiative_id and (days_remaining is None or days_remaining >= 0):
-                            consultations.append({
-                                'title': title,
-                                'initiative_id': initiative_id,
-                                'consultation_url': link,
-                                'date_opens': None,
-                                'date_closes': end_date,
-                                'days_remaining': days_remaining,
-                                'status': 'open',
-                                'policy_areas': []
-                            })
-                            
-            except ElementTree.ParseError:
-                pass
+            except ElementTree.ParseError as e:
+                print(f"  RSS parse error: {e}")
+        else:
+            print(f"  RSS failed with status {response.status_code}")
     except Exception as e:
         print(f"  RSS error: {e}")
     
+    print(f"  Consultations from RSS: {len(consultations)}")
     return consultations
 
 
