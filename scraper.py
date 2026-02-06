@@ -194,7 +194,7 @@ def fetch_eurlex_rss():
 def fetch_eu_consultations():
     """
     Fetch open consultations from EU Have Your Say portal
-    Note: The ec.europa.eu domain may be blocked from GitHub Actions
+    Uses the eu_consultations package
     """
     print("\n" + "=" * 50)
     print("Fetching EU Consultations...")
@@ -202,24 +202,62 @@ def fetch_eu_consultations():
     
     consultations = []
     
-    # Try the eu_consultations package first (if installed)
+    # Try the eu_consultations package
     try:
-        print("  Checking for eu_consultations package...")
-        from eu_consultations import get_initiatives
+        print("  Importing eu_consultations package...")
+        from eu_consultations.scrape import scrape
         
-        initiatives = get_initiatives(status='OPEN_FOR_FEEDBACK', limit=50)
-        print(f"  Found {len(initiatives)} open initiatives via package")
+        # Scrape consultations - the package handles the API access
+        # We'll search for topics relevant to Windsor Framework / consumer protection
+        topics_to_search = [
+            "AGRI",      # Agriculture
+            "FOOD",      # Food safety
+            "ENV",       # Environment
+            "CLIMA",     # Climate
+            "GROW",      # Internal market
+            "SANTE",     # Health
+            "JUST",      # Justice and consumers
+            "TRADE",     # Trade
+            "ENER",      # Energy
+            "MOVE",      # Transport
+        ]
         
-        for init in initiatives:
-            consultation = process_initiative(init)
-            if consultation:
-                consultations.append(consultation)
+        print(f"  Scraping consultations for {len(topics_to_search)} topic areas...")
+        
+        for topic in topics_to_search:
+            try:
+                print(f"    Checking topic: {topic}")
+                initiatives = scrape(
+                    topic_list=[topic],
+                    max_pages=1,  # Limit to first page for speed
+                    max_feedback=None,
+                    output_folder=None,  # Don't save to disk
+                    filename=None
+                )
                 
-    except ImportError:
-        print("  eu_consultations package not installed, trying direct API...")
+                if initiatives:
+                    print(f"      Found {len(initiatives)} initiatives")
+                    for init in initiatives:
+                        consultation = process_initiative_from_package(init)
+                        if consultation:
+                            # Check if we already have this one
+                            existing_ids = [c['initiative_id'] for c in consultations]
+                            if consultation['initiative_id'] not in existing_ids:
+                                consultations.append(consultation)
+                                
+            except Exception as e:
+                print(f"      Error scraping {topic}: {e}")
+                continue
+        
+        print(f"  Total unique consultations found: {len(consultations)}")
+                
+    except ImportError as e:
+        print(f"  eu_consultations package not available: {e}")
+        print("  Falling back to direct API...")
         consultations = fetch_consultations_api()
     except Exception as e:
-        print(f"  Package error: {e}, trying direct API...")
+        print(f"  Package error: {e}")
+        print("  Falling back to direct API...")
         consultations = fetch_consultations_api()
     
     print(f"\nTotal consultations found: {len(consultations)}")
@@ -231,6 +269,67 @@ def fetch_eu_consultations():
             print(f"  - {c['title'][:50]}... (closes in {days} days)")
     
     return consultations
+
+
+def process_initiative_from_package(init):
+    """Process an initiative from the eu_consultations package"""
+    try:
+        # The package returns Initiative dataclass objects
+        title = getattr(init, 'title', None) or getattr(init, 'short_title', 'Unknown')
+        initiative_id = str(getattr(init, 'id', ''))
+        
+        if not initiative_id:
+            return None
+        
+        # Check for open feedback periods
+        feedback_periods = getattr(init, 'feedback_periods', []) or []
+        consultation_periods = getattr(init, 'consultation_periods', []) or []
+        
+        end_date = None
+        start_date = None
+        has_open = False
+        
+        for period in feedback_periods + consultation_periods:
+            status = getattr(period, 'status', '')
+            if status == 'OPEN':
+                has_open = True
+                end_date = getattr(period, 'end_date', None)
+                start_date = getattr(period, 'start_date', None)
+                if end_date:
+                    end_date = str(end_date)[:10]
+                if start_date:
+                    start_date = str(start_date)[:10]
+                break
+        
+        if not has_open:
+            return None
+        
+        # Calculate days remaining
+        days_remaining = 30  # Default
+        if end_date:
+            try:
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                days_remaining = (end_dt - datetime.now()).days
+            except:
+                pass
+        
+        if days_remaining < 0:
+            return None
+        
+        return {
+            'title': str(title),
+            'initiative_id': initiative_id,
+            'consultation_url': f"https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/{initiative_id}_en",
+            'date_opens': start_date,
+            'date_closes': end_date,
+            'days_remaining': max(days_remaining, 0),
+            'status': 'open',
+            'policy_areas': []
+        }
+        
+    except Exception as e:
+        print(f"      Error processing initiative: {e}")
+        return None
 
 
 def fetch_consultations_api():
