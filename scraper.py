@@ -1,6 +1,6 @@
 """
-NI/EU Law Tracker - EUR-Lex Scraper
-Fetches EU legislation and matches against Windsor Framework Annex 2 categories
+NI/EU Law Tracker - EUR-Lex Scraper + EU Consultations
+Fetches EU legislation and consultations, matches against Windsor Framework Annex 2
 """
 
 import os
@@ -69,17 +69,36 @@ ANNEX2_CATEGORIES = [
     {"number": 47, "name": "Other", "relevance": "medium", "keywords": ["crude oil", "euro coins", "tobacco", "cultural goods", "dual-use items", "weapons", "firearms"]}
 ]
 
+# Policy areas on EU Have Your Say that map to Annex 2 topics
+CONSULTATION_POLICY_AREAS = [
+    "food-safety",
+    "public-health", 
+    "consumers",
+    "environment",
+    "climate-action",
+    "energy",
+    "transport",
+    "agriculture",
+    "fisheries",
+    "internal-market",
+    "customs",
+    "trade",
+    "justice",
+    "single-market"
+]
+
+
+# ============================================
+# LEGISLATION FETCHING (EUR-Lex)
+# ============================================
 
 def fetch_eurlex_cellar_api():
-    """
-    Fetch from EUR-Lex CELLAR API using SPARQL
-    """
+    """Fetch from EUR-Lex CELLAR API using SPARQL"""
     print("Fetching from CELLAR SPARQL API...")
     legislation = []
     
     sparql_endpoint = "https://publications.europa.eu/webapi/rdf/sparql"
     
-    # Query for recent regulations, directives, and decisions
     query = """
     PREFIX cdm: <http://publications.europa.eu/ontology/cdm#>
     PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -147,13 +166,10 @@ def fetch_eurlex_cellar_api():
 
 
 def fetch_eurlex_rss():
-    """
-    Fetch recent legislation from EUR-Lex RSS feeds
-    """
+    """Fetch recent legislation from EUR-Lex RSS feeds"""
     print("Fetching from EUR-Lex RSS feeds...")
     legislation = []
     
-    # EUR-Lex RSS feed for recent OJ L series (legislation)
     rss_url = "https://eur-lex.europa.eu/rss.do?rssId=legislation"
     
     try:
@@ -164,7 +180,6 @@ def fetch_eurlex_rss():
         print(f"  RSS response status: {response.status_code}")
         
         if response.status_code == 200:
-            # Parse RSS XML
             try:
                 root = ElementTree.fromstring(response.content)
                 items = root.findall('.//item')
@@ -179,11 +194,9 @@ def fetch_eurlex_rss():
                         title = title_elem.text
                         link = link_elem.text if link_elem is not None else ''
                         
-                        # Extract CELEX from link
                         celex = extract_celex(link, title)
                         
                         if celex and is_relevant_celex(celex):
-                            # Parse date
                             pub_date = None
                             if pub_date_elem is not None and pub_date_elem.text:
                                 try:
@@ -208,6 +221,315 @@ def fetch_eurlex_rss():
     return legislation
 
 
+# ============================================
+# CONSULTATION FETCHING (EU Have Your Say)
+# ============================================
+
+def fetch_eu_consultations():
+    """
+    Fetch open consultations from EU Have Your Say portal
+    Uses the public API endpoint
+    """
+    print("\n" + "=" * 50)
+    print("Fetching EU Consultations...")
+    print("=" * 50)
+    
+    consultations = []
+    
+    # EU Have Your Say API endpoint for open consultations
+    api_url = "https://ec.europa.eu/info/law/better-regulation/brpapi/searchInitiatives"
+    
+    # Search parameters for open consultations
+    params = {
+        'size': 50,
+        'page': 0,
+        'sort': 'LATEST',
+        'language': 'EN',
+        'publishedDate': '',
+    }
+    
+    try:
+        print("  Fetching from Have Your Say API...")
+        response = requests.get(
+            api_url,
+            params=params,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (compatible; NI-EU-Law-Tracker/1.0)',
+                'Accept': 'application/json'
+            },
+            timeout=30
+        )
+        
+        print(f"  API response status: {response.status_code}")
+        
+        if response.status_code == 200:
+            try:
+                data = response.json()
+                initiatives = data.get('_embedded', {}).get('initiativeResultDtoes', [])
+                print(f"  Found {len(initiatives)} initiatives")
+                
+                for init in initiatives:
+                    # Check if there's an open consultation
+                    if init.get('currentStatuses'):
+                        for status in init.get('currentStatuses', []):
+                            if 'OPEN' in status.get('receiveFeedbackStatus', ''):
+                                # Extract consultation details
+                                title = init.get('shortTitle') or init.get('title', 'Unknown')
+                                initiative_id = init.get('id')
+                                
+                                # Get dates
+                                end_date = None
+                                start_date = None
+                                for period in init.get('consultationPeriods', []):
+                                    if period.get('status') == 'OPEN':
+                                        end_date = period.get('endDate', '')[:10] if period.get('endDate') else None
+                                        start_date = period.get('startDate', '')[:10] if period.get('startDate') else None
+                                        break
+                                
+                                # Calculate days remaining
+                                days_remaining = None
+                                if end_date:
+                                    try:
+                                        end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                                        days_remaining = (end_dt - datetime.now()).days
+                                    except:
+                                        pass
+                                
+                                # Only include if still open (days remaining >= 0)
+                                if days_remaining is not None and days_remaining >= 0:
+                                    consultation_url = f"https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/{initiative_id}_en"
+                                    
+                                    consultations.append({
+                                        'title': title,
+                                        'initiative_id': str(initiative_id),
+                                        'consultation_url': consultation_url,
+                                        'date_opens': start_date,
+                                        'date_closes': end_date,
+                                        'days_remaining': days_remaining,
+                                        'status': 'open',
+                                        'policy_areas': init.get('topics', [])
+                                    })
+                                    
+            except json.JSONDecodeError as e:
+                print(f"  Could not parse API response: {e}")
+        else:
+            print(f"  API request failed: {response.text[:200]}")
+            
+    except Exception as e:
+        print(f"  API error: {e}")
+    
+    # Also try RSS feed as backup
+    if len(consultations) < 5:
+        consultations.extend(fetch_consultations_rss())
+    
+    print(f"\nTotal consultations found: {len(consultations)}")
+    
+    # Show sample
+    if consultations:
+        print("\nSample consultations:")
+        for c in consultations[:5]:
+            print(f"  - {c['title'][:50]}... (closes in {c['days_remaining']} days)")
+    
+    return consultations
+
+
+def fetch_consultations_rss():
+    """Backup: Fetch from EU consultations RSS feed"""
+    print("  Trying RSS feed as backup...")
+    consultations = []
+    
+    rss_url = "https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/rss_en"
+    
+    try:
+        response = requests.get(rss_url, timeout=30, headers={
+            'User-Agent': 'Mozilla/5.0 (compatible; NI-EU-Law-Tracker/1.0)'
+        })
+        
+        if response.status_code == 200:
+            try:
+                root = ElementTree.fromstring(response.content)
+                items = root.findall('.//item')
+                print(f"  Found {len(items)} items in RSS")
+                
+                for item in items:
+                    title_elem = item.find('title')
+                    link_elem = item.find('link')
+                    desc_elem = item.find('description')
+                    
+                    if title_elem is not None:
+                        title = title_elem.text or ''
+                        link = link_elem.text if link_elem is not None else ''
+                        
+                        # Extract initiative ID from link
+                        init_match = re.search(r'/initiatives/(\d+)', link)
+                        initiative_id = init_match.group(1) if init_match else None
+                        
+                        # Try to find dates in description
+                        desc = desc_elem.text if desc_elem is not None else ''
+                        date_match = re.search(r'until\s+(\d{1,2}\s+\w+\s+\d{4})', desc, re.I)
+                        
+                        end_date = None
+                        days_remaining = None
+                        if date_match:
+                            try:
+                                end_dt = datetime.strptime(date_match.group(1), '%d %B %Y')
+                                end_date = end_dt.strftime('%Y-%m-%d')
+                                days_remaining = (end_dt - datetime.now()).days
+                            except:
+                                pass
+                        
+                        if initiative_id and (days_remaining is None or days_remaining >= 0):
+                            consultations.append({
+                                'title': title,
+                                'initiative_id': initiative_id,
+                                'consultation_url': link,
+                                'date_opens': None,
+                                'date_closes': end_date,
+                                'days_remaining': days_remaining,
+                                'status': 'open',
+                                'policy_areas': []
+                            })
+                            
+            except ElementTree.ParseError:
+                pass
+    except Exception as e:
+        print(f"  RSS error: {e}")
+    
+    return consultations
+
+
+def match_consultation_to_category(title, policy_areas=None):
+    """Match a consultation to an Annex 2 category"""
+    title_lower = title.lower()
+    
+    best_match = None
+    best_score = 0
+    
+    for category in ANNEX2_CATEGORIES:
+        score = 0
+        for keyword in category['keywords']:
+            if keyword.lower() in title_lower:
+                score += 1
+        
+        if score > best_score:
+            best_score = score
+            best_match = category['number']
+    
+    return best_match if best_score > 0 else None
+
+
+def save_consultations(consultations):
+    """Save consultations to Supabase"""
+    if not SUPABASE_KEY:
+        print("ERROR: SUPABASE_SERVICE_KEY not set")
+        return {'saved': 0, 'errors': ['No API key']}
+    
+    headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': f'Bearer {SUPABASE_KEY}',
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+    }
+    
+    saved = 0
+    updated = 0
+    errors = []
+    
+    for consultation in consultations:
+        # Check if consultation already exists
+        try:
+            check_response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/consultations?initiative_id=eq.{consultation['initiative_id']}&select=id",
+                headers=headers,
+                timeout=30
+            )
+            
+            existing = check_response.json() if check_response.status_code == 200 else []
+            
+            data = {
+                'title': consultation['title'],
+                'initiative_id': consultation['initiative_id'],
+                'consultation_url': consultation['consultation_url'],
+                'date_opened': consultation.get('date_opens'),
+                'date_closes': consultation.get('date_closes'),
+                'days_remaining': consultation.get('days_remaining'),
+                'status': consultation.get('status', 'open'),
+                'date_scraped': datetime.now().isoformat()
+            }
+            
+            # Try to match to a legislation item by keywords
+            category_num = match_consultation_to_category(consultation['title'])
+            if category_num:
+                # Find a legislation item in this category to link to
+                leg_response = requests.get(
+                    f"{SUPABASE_URL}/rest/v1/legislation?category_number=eq.{category_num}&select=id&limit=1",
+                    headers=headers,
+                    timeout=30
+                )
+                if leg_response.status_code == 200:
+                    leg_items = leg_response.json()
+                    if leg_items:
+                        data['legislation_id'] = leg_items[0]['id']
+            
+            if existing:
+                # Update existing
+                response = requests.patch(
+                    f"{SUPABASE_URL}/rest/v1/consultations?initiative_id=eq.{consultation['initiative_id']}",
+                    headers=headers,
+                    json=data,
+                    timeout=30
+                )
+                if response.status_code in [200, 204]:
+                    updated += 1
+            else:
+                # Insert new
+                response = requests.post(
+                    f"{SUPABASE_URL}/rest/v1/consultations",
+                    headers=headers,
+                    json=data,
+                    timeout=30
+                )
+                if response.status_code in [200, 201]:
+                    saved += 1
+                else:
+                    errors.append(f"{consultation['initiative_id']}: {response.status_code}")
+                    
+        except Exception as e:
+            errors.append(f"{consultation.get('initiative_id', 'unknown')}: {str(e)}")
+    
+    return {'saved': saved, 'updated': updated, 'errors': errors}
+
+
+def update_closed_consultations():
+    """Mark consultations as closed if their date has passed"""
+    if not SUPABASE_KEY:
+        return
+    
+    headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': f'Bearer {SUPABASE_KEY}',
+        'Content-Type': 'application/json'
+    }
+    
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    try:
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/consultations?date_closes=lt.{today}&status=eq.open",
+            headers=headers,
+            json={'status': 'closed', 'days_remaining': 0},
+            timeout=30
+        )
+        if response.status_code in [200, 204]:
+            print("  Updated closed consultations")
+    except Exception as e:
+        print(f"  Error updating closed consultations: {e}")
+
+
+# ============================================
+# HELPER FUNCTIONS
+# ============================================
+
 def extract_celex(link, title):
     """Extract CELEX number from link or title"""
     patterns = [
@@ -226,18 +548,6 @@ def extract_celex(link, title):
         match = re.search(pattern, title, re.I)
         if match:
             return match.group(1).upper()
-    
-    # Try to construct from regulation/directive number
-    reg_match = re.search(r'(?:EU\)?\s*)?(\d{4})/(\d+)', title)
-    if reg_match:
-        year = reg_match.group(1)
-        num = reg_match.group(2).zfill(4)
-        if 'Regulation' in title:
-            return f"3{year}R{num}"
-        elif 'Directive' in title:
-            return f"3{year}L{num}"
-        elif 'Decision' in title:
-            return f"3{year}D{num}"
     
     return None
 
@@ -410,7 +720,6 @@ def save_analysis_results(legislation):
     
     for item in legislation:
         try:
-            # Get the legislation ID
             response = requests.get(
                 f"{SUPABASE_URL}/rest/v1/legislation?celex_number=eq.{item['celex_number']}&select=id",
                 headers=headers,
@@ -453,13 +762,24 @@ def save_analysis_results(legislation):
     return {'saved': saved, 'errors': errors}
 
 
+# ============================================
+# MAIN FUNCTION
+# ============================================
+
 def main():
     """Main scraper function"""
     print("=" * 50)
-    print("NI/EU Law Tracker - EUR-Lex Scraper")
+    print("NI/EU Law Tracker - Scraper")
     print(f"Started at: {datetime.now().isoformat()}")
-    print(f"SUPABASE_URL: {SUPABASE_URL[:30]}..." if SUPABASE_URL else "SUPABASE_URL: NOT SET")
+    print(f"SUPABASE_URL: {'SET' if SUPABASE_URL else 'NOT SET'}")
     print(f"SUPABASE_KEY: {'SET' if SUPABASE_KEY else 'NOT SET'}")
+    print("=" * 50)
+    
+    # ==========================================
+    # PART 1: LEGISLATION
+    # ==========================================
+    print("\n" + "=" * 50)
+    print("PART 1: EUR-Lex Legislation")
     print("=" * 50)
     
     legislation = []
@@ -482,55 +802,83 @@ def main():
     legislation = unique_legislation
     print(f"\nTotal unique legislation items: {len(legislation)}")
     
-    if not legislation:
-        print("\nNo legislation found from any source!")
-        print("This may be a temporary issue with EUR-Lex APIs.")
-        print("The scraper will try again on the next scheduled run.")
-        return
-    
-    # Show some examples
-    print("\nSample legislation found:")
-    for item in legislation[:5]:
-        print(f"  - {item['celex_number']}: {item['title'][:60]}...")
-    
-    # Match to Annex 2 categories
-    print("\nMatching to Annex 2 categories...")
-    matched_count = 0
-    for item in legislation:
-        category_num, is_direct, keywords = match_to_category(item['title'])
-        item['category_number'] = category_num
-        item['is_direct_annex2_match'] = is_direct
-        item['is_keyword_match'] = bool(keywords) and not is_direct
-        item['matched_keywords'] = keywords
+    if legislation:
+        # Show some examples
+        print("\nSample legislation found:")
+        for item in legislation[:5]:
+            print(f"  - {item['celex_number']}: {item['title'][:60]}...")
         
-        if category_num:
-            matched_count += 1
-            category = next((c for c in ANNEX2_CATEGORIES if c['number'] == category_num), None)
-            if category:
-                item['consumer_relevance'] = category['relevance']
+        # Match to Annex 2 categories
+        print("\nMatching to Annex 2 categories...")
+        matched_count = 0
+        for item in legislation:
+            category_num, is_direct, keywords = match_to_category(item['title'])
+            item['category_number'] = category_num
+            item['is_direct_annex2_match'] = is_direct
+            item['is_keyword_match'] = bool(keywords) and not is_direct
+            item['matched_keywords'] = keywords
+            
+            if category_num:
+                matched_count += 1
+                category = next((c for c in ANNEX2_CATEGORIES if c['number'] == category_num), None)
+                if category:
+                    item['consumer_relevance'] = category['relevance']
+        
+        print(f"Matched {matched_count} items to Annex 2 categories")
+        
+        # Save to database
+        print("\nSaving legislation to Supabase...")
+        save_results = save_to_supabase(legislation)
+        print(f"Saved: {save_results['inserted']} legislation items")
+        if save_results['errors']:
+            print(f"Errors: {len(save_results['errors'])}")
+        
+        # Calculate and save analysis scores
+        print("\nCalculating priority scores...")
+        analysis_results = save_analysis_results(legislation)
+        print(f"Analysis results saved: {analysis_results['saved']}")
+    else:
+        print("No legislation found from any source.")
     
-    print(f"Matched {matched_count} items to Annex 2 categories")
+    # ==========================================
+    # PART 2: CONSULTATIONS
+    # ==========================================
+    print("\n" + "=" * 50)
+    print("PART 2: EU Consultations")
+    print("=" * 50)
     
-    # Save to database
-    print("\nSaving to Supabase...")
-    save_results = save_to_supabase(legislation)
-    print(f"Saved: {save_results['inserted']} legislation items")
-    if save_results['errors']:
-        print(f"Errors: {len(save_results['errors'])}")
-        for err in save_results['errors'][:5]:
-            print(f"  - {err}")
+    consultations = fetch_eu_consultations()
     
-    # Calculate and save analysis scores
-    print("\nCalculating priority scores...")
-    analysis_results = save_analysis_results(legislation)
-    print(f"Analysis results saved: {analysis_results['saved']}")
-    if analysis_results['errors']:
-        print(f"Analysis errors: {len(analysis_results['errors'])}")
-        for err in analysis_results['errors'][:3]:
-            print(f"  - {err}")
+    if consultations:
+        # Match to categories
+        print("\nMatching consultations to Annex 2 categories...")
+        matched = 0
+        for c in consultations:
+            cat = match_consultation_to_category(c['title'])
+            if cat:
+                c['category_number'] = cat
+                matched += 1
+        print(f"Matched {matched} consultations to categories")
+        
+        # Save to database
+        print("\nSaving consultations to Supabase...")
+        results = save_consultations(consultations)
+        print(f"New consultations saved: {results['saved']}")
+        print(f"Consultations updated: {results['updated']}")
+        if results['errors']:
+            print(f"Errors: {len(results['errors'])}")
+        
+        # Update closed consultations
+        update_closed_consultations()
+    else:
+        print("No consultations found.")
     
+    # ==========================================
+    # COMPLETE
+    # ==========================================
     print("\n" + "=" * 50)
     print("Scraper completed successfully!")
+    print(f"Finished at: {datetime.now().isoformat()}")
     print("=" * 50)
 
 
