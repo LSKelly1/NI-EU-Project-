@@ -228,7 +228,6 @@ def fetch_eurlex_rss():
 def fetch_eu_consultations():
     """
     Fetch open consultations from EU Have Your Say portal
-    Uses the public API endpoint
     """
     print("\n" + "=" * 50)
     print("Fetching EU Consultations...")
@@ -236,16 +235,16 @@ def fetch_eu_consultations():
     
     consultations = []
     
-    # EU Have Your Say API endpoint for open consultations
+    # EU Have Your Say API - using the public search endpoint
+    # This endpoint is used by the actual website
     api_url = "https://ec.europa.eu/info/law/better-regulation/brpapi/searchInitiatives"
     
-    # Search parameters for open consultations
+    # Parameters that work with the API
     params = {
-        'size': 50,
+        'size': 100,
         'page': 0,
         'sort': 'LATEST',
         'language': 'EN',
-        'publishedDate': '',
     }
     
     try:
@@ -254,8 +253,11 @@ def fetch_eu_consultations():
             api_url,
             params=params,
             headers={
-                'User-Agent': 'Mozilla/5.0 (compatible; NI-EU-Law-Tracker/1.0)',
-                'Accept': 'application/json'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-GB,en;q=0.9',
+                'Referer': 'https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives_en',
+                'Origin': 'https://ec.europa.eu'
             },
             timeout=30
         )
@@ -270,44 +272,60 @@ def fetch_eu_consultations():
                 
                 for init in initiatives:
                     # Check if there's an open consultation
+                    has_open_feedback = False
                     if init.get('currentStatuses'):
                         for status in init.get('currentStatuses', []):
-                            if 'OPEN' in status.get('receiveFeedbackStatus', ''):
-                                # Extract consultation details
-                                title = init.get('shortTitle') or init.get('title', 'Unknown')
-                                initiative_id = init.get('id')
-                                
-                                # Get dates
-                                end_date = None
-                                start_date = None
-                                for period in init.get('consultationPeriods', []):
-                                    if period.get('status') == 'OPEN':
-                                        end_date = period.get('endDate', '')[:10] if period.get('endDate') else None
-                                        start_date = period.get('startDate', '')[:10] if period.get('startDate') else None
-                                        break
-                                
-                                # Calculate days remaining
-                                days_remaining = None
-                                if end_date:
-                                    try:
-                                        end_dt = datetime.strptime(end_date, '%Y-%m-%d')
-                                        days_remaining = (end_dt - datetime.now()).days
-                                    except:
-                                        pass
-                                
-                                # Only include if still open (days remaining >= 0)
-                                if days_remaining is not None and days_remaining >= 0:
-                                    consultation_url = f"https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/{initiative_id}_en"
-                                    
-                                    consultations.append({
-                                        'title': title,
-                                        'initiative_id': str(initiative_id),
-                                        'consultation_url': consultation_url,
-                                        'date_opens': start_date,
-                                        'date_closes': end_date,
-                                        'days_remaining': days_remaining,
-                                        'status': 'open',
-                                        'policy_areas': init.get('topics', [])
+                            feedback_status = status.get('receiveFeedbackStatus', '')
+                            if 'OPEN' in str(feedback_status).upper():
+                                has_open_feedback = True
+                                break
+                    
+                    if has_open_feedback:
+                        # Extract consultation details
+                        title = init.get('shortTitle') or init.get('title', 'Unknown')
+                        initiative_id = init.get('id')
+                        
+                        # Get dates from consultation periods or feedback periods
+                        end_date = None
+                        start_date = None
+                        
+                        # Try consultation periods first
+                        for period in init.get('consultationPeriods', []):
+                            if period.get('status') == 'OPEN':
+                                end_date = period.get('endDate', '')[:10] if period.get('endDate') else None
+                                start_date = period.get('startDate', '')[:10] if period.get('startDate') else None
+                                break
+                        
+                        # If no dates, try feedback periods
+                        if not end_date:
+                            for period in init.get('feedbackPeriods', []):
+                                if period.get('status') == 'OPEN':
+                                    end_date = period.get('endDate', '')[:10] if period.get('endDate') else None
+                                    start_date = period.get('startDate', '')[:10] if period.get('startDate') else None
+                                    break
+                        
+                        # Calculate days remaining
+                        days_remaining = None
+                        if end_date:
+                            try:
+                                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                                days_remaining = (end_dt - datetime.now()).days
+                            except:
+                                pass
+                        
+                        # Include if open (days remaining >= 0 or unknown)
+                        if days_remaining is None or days_remaining >= 0:
+                            consultation_url = f"https://ec.europa.eu/info/law/better-regulation/have-your-say/initiatives/{initiative_id}_en"
+                            
+                            consultations.append({
+                                'title': title,
+                                'initiative_id': str(initiative_id),
+                                'consultation_url': consultation_url,
+                                'date_opens': start_date,
+                                'date_closes': end_date,
+                                'days_remaining': days_remaining if days_remaining else 30,  # Default to 30 if unknown
+                                'status': 'open',
+                                'policy_areas': init.get('topics', [])
                                     })
                                     
             except json.JSONDecodeError as e:
@@ -342,8 +360,11 @@ def fetch_consultations_rss():
     
     try:
         response = requests.get(rss_url, timeout=30, headers={
-            'User-Agent': 'Mozilla/5.0 (compatible; NI-EU-Law-Tracker/1.0)'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/rss+xml, application/xml, text/xml, */*'
         })
+        
+        print(f"  RSS response status: {response.status_code}")
         
         if response.status_code == 200:
             try:
