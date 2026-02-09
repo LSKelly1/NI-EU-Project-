@@ -332,6 +332,176 @@
             </div>
 
             <div class="legislation-list" id="legislation-list"></div>
+            <!-- Add this section to your index.html after the legislation cards section -->
+<!-- CONSULTATIONS SECTION -->
+<div id="consultations-section" class="consultations-section" style="margin-top: 2rem; display: none;">
+    <h2 style="color: #003078; border-bottom: 3px solid #003078; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+        📋 Open EU Consultations
+    </h2>
+    <p style="color: #505a5f; margin-bottom: 1rem;">
+        These consultations are relevant to Windsor Framework Annex 2 topics. Responding to consultations is a key way to influence EU policy.
+    </p>
+    <div id="consultations-list"></div>
+</div>
+
+<style>
+/* Consultation Styles */
+.consultations-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.consultation-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-left: 4px solid #1d70b8;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.consultation-card.urgent {
+    border-left-color: #d4351c;
+    background: #fef7f7;
+}
+
+.consultation-card.soon {
+    border-left-color: #f47738;
+    background: #fefaf7;
+}
+
+.consultation-title {
+    font-weight: 600;
+    color: #0b0c0c;
+    margin-bottom: 0.5rem;
+}
+
+.consultation-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #505a5f;
+    margin-bottom: 0.75rem;
+}
+
+.consultation-countdown {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.countdown-urgent {
+    background: #d4351c;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.countdown-soon {
+    background: #f47738;
+    color: white;
+}
+
+.countdown-normal {
+    background: #00703c;
+    color: white;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.consultation-link {
+    display: inline-block;
+    background: #1d70b8;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.consultation-link:hover {
+    background: #003078;
+    color: white;
+}
+</style>
+
+<script>
+// Add this to your existing JavaScript
+
+async function loadConsultations() {
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/consultations?status=eq.open&order=days_remaining.asc`, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch consultations');
+        
+        const consultations = await response.json();
+        
+        if (consultations.length > 0) {
+            document.getElementById('consultations-section').style.display = 'block';
+            renderConsultations(consultations);
+            
+            // Update stat card
+            document.getElementById('open-consultations-count').textContent = consultations.length;
+        }
+        
+    } catch (error) {
+        console.error('Error loading consultations:', error);
+    }
+}
+
+function renderConsultations(consultations) {
+    const container = document.getElementById('consultations-list');
+    
+    container.innerHTML = consultations.map(c => {
+        const days = c.days_remaining || 30;
+        let urgencyClass = '';
+        let countdownClass = 'countdown-normal';
+        let emoji = '📅';
+        
+        if (days <= 7) {
+            urgencyClass = 'urgent';
+            countdownClass = 'countdown-urgent';
+            emoji = '🚨';
+        } else if (days <= 14) {
+            urgencyClass = 'soon';
+            countdownClass = 'countdown-soon';
+            emoji = '⏰';
+        }
+        
+        return `
+            <div class="consultation-card ${urgencyClass}">
+                <div class="consultation-title">${c.title}</div>
+                <div class="consultation-meta">
+                    <span class="consultation-countdown ${countdownClass}">
+                        ${emoji} ${days} days remaining
+                    </span>
+                    <span>Closes: ${c.date_closes || 'TBC'}</span>
+                </div>
+                <a href="${c.consultation_url}" target="_blank" class="consultation-link">
+                    📝 Respond to Consultation
+                </a>
+            </div>
+        `;
+    }).join('');
+}
+
+// Call this in your init function
+// loadConsultations();
+</script>
         </div>
 
         <div id="categories" class="tab-content">
